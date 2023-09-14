@@ -1,0 +1,13 @@
+
+.idea
+
+*.exe
+*.exe~
+*.dll
+*.so
+
+*.test
+
+*.out
+
+go.work
