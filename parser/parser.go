@@ -18,7 +18,6 @@ func ParseFile(filePath string) (string, error) {
 		extension = ".txt"
 	}
 
-	println("extension: ", extension)
 	if extension == ".txt" {
 		return readRawFileToString(filePath)
 	}
@@ -28,9 +27,9 @@ func ParseFile(filePath string) (string, error) {
 
 func exractExtensionWithDot(filePath string) string {
 	dotIndex := strings.LastIndex(filePath, ".")
-  if(dotIndex == -1) {
-    return ""
-  }
+	if dotIndex == -1 {
+		return ""
+	}
 	return filePath[dotIndex:]
 }
 
