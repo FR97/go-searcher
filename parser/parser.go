@@ -5,6 +5,8 @@ import (
 	"errors"
 	"os"
 	"strings"
+
+	"jaytaylor.com/html2text"
 )
 
 func ParseFile(filePath string) (string, error) {
@@ -24,6 +26,8 @@ func ParseFile(filePath string) (string, error) {
 		return readRawFileToString(filePath)
 	case ".xml", ".xhtml":
 		return readXmlFileToString(filePath)
+	case ".html":
+		return readHtmlFileToString(filePath)
 	}
 
 	return "", errors.New("unsupported extension: " + extension)
@@ -59,4 +63,18 @@ func readXmlFileToString(filePath string) (string, error) {
 	}
 
 	return v, nil
+}
+
+func readHtmlFileToString(filePath string) (string, error) {
+	bytes, err := os.ReadFile(filePath)
+	if err != nil {
+		return "", err
+	}
+
+	str, err := html2text.FromString(string(bytes), html2text.Options{TextOnly: true})
+	if err != nil {
+		return "", err
+	}
+
+	return str, nil
 }
