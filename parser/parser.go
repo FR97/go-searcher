@@ -3,7 +3,10 @@ package parser
 import (
 	"encoding/xml"
 	"errors"
+	"fmt"
+	"io"
 	"os"
+	"reflect"
 	"strings"
 
 	"jaytaylor.com/html2text"
@@ -52,17 +55,32 @@ func readRawFileToString(filePath string) (string, error) {
 }
 
 func readXmlFileToString(filePath string) (string, error) {
-	bytes, err := os.ReadFile(filePath)
+	f, err := os.Open(filePath)
 	if err != nil {
 		return "", err
 	}
 
-	var v string
-	if err := xml.Unmarshal(bytes, &v); err != nil {
-		return "", err
-	}
+	decoder := xml.NewDecoder(f)
 
-	return v, nil
+	var sb strings.Builder
+
+	for {
+		tok, err := decoder.Token()
+		if tok == nil || err == io.EOF {
+			return sb.String(), nil
+		} else if err != nil {
+			return "", err
+		}
+		fmt.Println("token: ", tok, " type: ", reflect.TypeOf(tok))
+
+		if cd, ok := tok.(xml.CharData); ok {
+			str := string(cd)
+			if len(strings.TrimSpace(str)) > 0 {
+				sb.WriteString(str)
+				sb.WriteString("\n")
+			}
+		}
+	}
 }
 
 func readHtmlFileToString(filePath string) (string, error) {
