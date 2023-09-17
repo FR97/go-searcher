@@ -1,25 +1,27 @@
 package main
 
-import "os"
+import (
+	"fmt"
+	"os"
+
+	"github.com/fr97/go-searcher/parser"
+)
 
 func main() {
 
 	args := os.Args[1:]
 
 	if len(args) == 0 {
-		println("File path not provided")
+		fmt.Println("File path not provided")
 		return
 	}
 
 	filePath := args[0]
 
-	bytes, err := os.ReadFile(filePath)
-
+	str, err := parser.ParseFile(filePath)
 	if err != nil {
-		println("error reading a file: ", err.Error())
-		return
+		fmt.Println("error:", err)
 	}
 
-	str := string(bytes)
-	println(str)
+	fmt.Println(str)
 }
