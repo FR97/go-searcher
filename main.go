@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/fr97/go-searcher/parser"
 )
@@ -16,12 +17,42 @@ func main() {
 		return
 	}
 
-	filePath := args[0]
+	path := args[0]
 
-	str, err := parser.ParseFile(filePath)
+	err := parseFiles(path)
 	if err != nil {
-		fmt.Println("error:", err)
+		fmt.Println("error: ", err)
 	}
 
-	fmt.Println(str)
+}
+
+func parseFiles(rootPath string) error {
+	err := filepath.Walk(rootPath,
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+
+			if !info.IsDir() {
+				_, err := parser.ParseFile(path)
+				if err != nil {
+					fmt.Println(fmt.Errorf("error: %w", err))
+				} else {
+					fmt.Println("parsed: ", path)
+				}
+			}
+
+			return nil
+		})
+
+	return err
+}
+
+func isDirectory(path string) (bool, error) {
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		return false, err
+	}
+
+	return fileInfo.IsDir(), err
 }

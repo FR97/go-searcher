@@ -3,13 +3,10 @@ package parser
 import (
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"io"
-	"os"
-	"reflect"
-	"strings"
-
 	"jaytaylor.com/html2text"
+	"os"
+	"strings"
 )
 
 func ParseFile(filePath string) (string, error) {
@@ -60,6 +57,8 @@ func readXmlFileToString(filePath string) (string, error) {
 		return "", err
 	}
 
+	defer f.Close()
+
 	decoder := xml.NewDecoder(f)
 
 	var sb strings.Builder
@@ -71,7 +70,6 @@ func readXmlFileToString(filePath string) (string, error) {
 		} else if err != nil {
 			return "", err
 		}
-		fmt.Println("token: ", tok, " type: ", reflect.TypeOf(tok))
 
 		if cd, ok := tok.(xml.CharData); ok {
 			str := string(cd)
