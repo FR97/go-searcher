@@ -9,7 +9,7 @@ type TermFrequency map[string]uint
 
 func IndexTermFreq(content string) TermFrequency {
 	lexer := NewLexer(content)
-	tf := map[string]uint{}
+	tf := TermFrequency{}
 
 	for {
 		token, ok := lexer.nextToken()

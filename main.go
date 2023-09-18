@@ -20,7 +20,7 @@ func main() {
 
 	fmt.Println("search path:", flags.SearchPath)
 
-	indexed := make(map[string]map[string]uint)
+	indexed := FileIndex{}
 
 	err := parseFiles(flags.SearchPath, func(file, content string) {
 		_, exists := indexed[file]
