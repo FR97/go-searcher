@@ -5,7 +5,9 @@ import (
 	"unicode"
 )
 
-func IndexTermFreq(content string) map[string]uint {
+type TermFrequency map[string]uint
+
+func IndexTermFreq(content string) TermFrequency {
 	lexer := NewLexer(content)
 	tf := map[string]uint{}
 

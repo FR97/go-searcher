@@ -13,6 +13,8 @@ type SearcherFlags struct {
 	SearchPath string
 }
 
+type FileIndex map[string]indexer.TermFrequency
+
 func main() {
 	flags := parseSearcherFlags()
 
