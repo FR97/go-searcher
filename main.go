@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,14 +11,16 @@ import (
 
 func main() {
 
-	args := os.Args[1:]
+	pPath := flag.String("path", "./", "file or directory to be indexed")
 
-	if len(args) == 0 {
-		fmt.Println("File path not provided")
-		return
+	flag.Parse()
+
+	path := ""
+	if pPath != nil {
+		path = *pPath
 	}
 
-	path := args[0]
+	fmt.Println("path: ", path)
 
 	err := parseFiles(path)
 	if err != nil {
