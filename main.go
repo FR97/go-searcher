@@ -16,23 +16,26 @@ type SearcherFlags struct {
 func main() {
 	flags := parseSearcherFlags()
 
-	fmt.Println("search path: ", flags.SearchPath)
+	fmt.Println("search path:", flags.SearchPath)
 
-	indexedFiles := make(map[string]map[string]int)
+	indexedFiles := make(map[string]map[string]uint)
 
 	err := parseFiles(flags.SearchPath, func(file, content string) {
 		_, exists := indexedFiles[file]
 		if !exists {
-			indexed := map[string]int{}
+			indexed := map[string]uint{}
 			indexer.Index(content, indexed)
+
+			fmt.Println("index:", indexed)
+
 			indexedFiles[file] = indexed
 		}
 	})
 	if err != nil {
-		fmt.Println("error: ", err)
+		fmt.Println("error:", err)
 	}
 
-	fmt.Println("indexed: ", indexedFiles)
+	fmt.Println("indexed:", indexedFiles)
 }
 
 func parseFiles(rootPath string, withContent func(string, string)) error {

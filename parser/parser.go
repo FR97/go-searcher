@@ -75,7 +75,7 @@ func readXmlFileToString(filePath string) (string, error) {
 			str := string(cd)
 			if len(strings.TrimSpace(str)) > 0 {
 				sb.WriteString(str)
-				sb.WriteString("\n")
+				sb.WriteString(" ")
 			}
 		}
 	}
