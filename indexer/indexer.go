@@ -39,25 +39,22 @@ func (l *Lexer) nextToken() ([]rune, bool) {
 		return []rune{}, false
 	}
 
-	if unicode.IsLetter(l.content[l.position]) {
-		i := l.position
-		for i < len(l.content) && isAlpaNumeric(l.content[i]) {
-			i += 1
-		}
+	if unicode.IsLetter(l.content[l.position]) { // word token
 		start := l.position
-		l.position = i
-		return l.content[start:i], true
-	} else if unicode.IsNumber(l.content[l.position]) {
-		i := l.position
-		for i < len(l.content) && unicode.IsNumber(l.content[i]) {
-			i += 1
+		for isAlpaNumeric(l.content[l.position]) && l.position < len(l.content) {
+			l.position += 1
 		}
+		return l.content[start:l.position], true
+	} else if unicode.IsNumber(l.content[l.position]) { // number token
 		start := l.position
-		l.position = i
-		return l.content[start:i], true
+		for unicode.IsNumber(l.content[l.position]) && l.position < len(l.content) {
+			l.position += 1
+		}
+		return l.content[start:l.position], true
+	} else { // other tokens are treated as single chars
+		l.position += 1
+		return l.content[l.position-1 : l.position], true
 	}
-
-	return []rune{}, true
 }
 
 func (l *Lexer) lTrim() {
