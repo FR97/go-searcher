@@ -3,10 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/fr97/go-searcher/indexer"
+	"github.com/fr97/go-searcher/parser"
 	"os"
 	"path/filepath"
-
-	"github.com/fr97/go-searcher/parser"
 )
 
 type SearcherFlags struct {
@@ -14,19 +14,28 @@ type SearcherFlags struct {
 }
 
 func main() {
-
 	flags := parseSearcherFlags()
 
 	fmt.Println("search path: ", flags.SearchPath)
 
-	err := parseFiles(flags.SearchPath)
+	indexedFiles := make(map[string]map[string]int)
+
+	err := parseFiles(flags.SearchPath, func(file, content string) {
+		_, exists := indexedFiles[file]
+		if !exists {
+			indexed := map[string]int{}
+			indexer.Index(content, indexed)
+			indexedFiles[file] = indexed
+		}
+	})
 	if err != nil {
 		fmt.Println("error: ", err)
 	}
 
+	fmt.Println("indexed: ", indexedFiles)
 }
 
-func parseFiles(rootPath string) error {
+func parseFiles(rootPath string, withContent func(string, string)) error {
 	err := filepath.Walk(rootPath,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -34,11 +43,11 @@ func parseFiles(rootPath string) error {
 			}
 
 			if !info.IsDir() {
-				_, err := parser.ParseFile(path)
+				content, err := parser.ParseFile(path)
 				if err != nil {
 					fmt.Println(fmt.Errorf("error: %w", err))
 				} else {
-					fmt.Println("parsed: ", path)
+					withContent(path, content)
 				}
 			}
 
