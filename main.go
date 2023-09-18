@@ -18,24 +18,23 @@ func main() {
 
 	fmt.Println("search path:", flags.SearchPath)
 
-	indexedFiles := make(map[string]map[string]uint)
+	indexed := make(map[string]map[string]uint)
 
 	err := parseFiles(flags.SearchPath, func(file, content string) {
-		_, exists := indexedFiles[file]
+		_, exists := indexed[file]
 		if !exists {
-			indexed := map[string]uint{}
-			indexer.Index(content, indexed)
+			tf := indexer.IndexTermFreq(content)
 
-			fmt.Println("index:", indexed)
+			fmt.Println("term frequency:", tf)
 
-			indexedFiles[file] = indexed
+			indexed[file] = tf
 		}
 	})
 	if err != nil {
 		fmt.Println("error:", err)
 	}
 
-	fmt.Println("indexed:", indexedFiles)
+	fmt.Println("indexed:", indexed)
 }
 
 func parseFiles(rootPath string, withContent func(string, string)) error {

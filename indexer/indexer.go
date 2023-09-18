@@ -5,9 +5,9 @@ import (
 	"unicode"
 )
 
-func Index(content string, index map[string]uint) {
-
+func IndexTermFreq(content string) map[string]uint {
 	lexer := NewLexer(content)
+	tf := map[string]uint{}
 
 	for {
 		token, ok := lexer.nextToken()
@@ -15,10 +15,12 @@ func Index(content string, index map[string]uint) {
 		if !ok {
 			break
 		}
-		strToken := strings.ToLower(string(token))
-		count := index[strToken]
-		index[strToken] = count + 1
+		term := strings.ToLower(string(token))
+		count := tf[term]
+		tf[term] = count + 1
 	}
+
+	return tf
 }
 
 type Lexer struct {
