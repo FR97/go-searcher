@@ -31,7 +31,7 @@ func NewLexer(content string) *Lexer {
 }
 
 func (l *Lexer) nextToken() ([]rune, bool) {
-	l.skipFor(unicode.IsSpace)
+	l.incrementWhile(unicode.IsSpace)
 
 	if l.position >= len(l.content) {
 		return []rune{}, false
@@ -39,11 +39,11 @@ func (l *Lexer) nextToken() ([]rune, bool) {
 
 	if unicode.IsLetter(l.content[l.position]) { // word token
 		start := l.position
-		l.skipFor(isAlpaNumeric)
+		l.incrementWhile(isAlpaNumeric)
 		return l.content[start:l.position], true
 	} else if unicode.IsNumber(l.content[l.position]) { // number token
 		start := l.position
-		l.skipFor(unicode.IsNumber)
+		l.incrementWhile(unicode.IsNumber)
 		return l.content[start:l.position], true
 	} else { // other tokens are treated as single chars
 		l.position += 1
@@ -51,7 +51,7 @@ func (l *Lexer) nextToken() ([]rune, bool) {
 	}
 }
 
-func (l *Lexer) skipFor(filter func(rune) bool) {
+func (l *Lexer) incrementWhile(filter func(rune) bool) {
 	for l.position < len(l.content) && filter(l.content[l.position]) {
 		l.position += 1
 	}
