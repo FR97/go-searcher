@@ -1,7 +1,6 @@
 package indexer
 
 import (
-	"fmt"
 	"strings"
 	"unicode"
 )
@@ -16,7 +15,6 @@ func Index(content string, index map[string]uint) {
 		if !ok {
 			break
 		}
-		fmt.Println("token:", string(token), "position:", lexer.position)
 		strToken := strings.ToLower(string(token))
 		count := index[strToken]
 		index[strToken] = count + 1
@@ -33,7 +31,7 @@ func NewLexer(content string) *Lexer {
 }
 
 func (l *Lexer) nextToken() ([]rune, bool) {
-	l.lTrim()
+	l.skipFor(unicode.IsSpace)
 
 	if l.position >= len(l.content) {
 		return []rune{}, false
@@ -41,15 +39,11 @@ func (l *Lexer) nextToken() ([]rune, bool) {
 
 	if unicode.IsLetter(l.content[l.position]) { // word token
 		start := l.position
-		for isAlpaNumeric(l.content[l.position]) && l.position < len(l.content) {
-			l.position += 1
-		}
+		l.skipFor(isAlpaNumeric)
 		return l.content[start:l.position], true
 	} else if unicode.IsNumber(l.content[l.position]) { // number token
 		start := l.position
-		for unicode.IsNumber(l.content[l.position]) && l.position < len(l.content) {
-			l.position += 1
-		}
+		l.skipFor(unicode.IsNumber)
 		return l.content[start:l.position], true
 	} else { // other tokens are treated as single chars
 		l.position += 1
@@ -57,8 +51,8 @@ func (l *Lexer) nextToken() ([]rune, bool) {
 	}
 }
 
-func (l *Lexer) lTrim() {
-	for l.position < len(l.content) && unicode.IsSpace(l.content[l.position]) {
+func (l *Lexer) skipFor(filter func(rune) bool) {
+	for l.position < len(l.content) && filter(l.content[l.position]) {
 		l.position += 1
 	}
 }
