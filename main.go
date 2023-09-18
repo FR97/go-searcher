@@ -9,20 +9,17 @@ import (
 	"github.com/fr97/go-searcher/parser"
 )
 
+type SearcherFlags struct {
+	SearchPath string
+}
+
 func main() {
 
-	pPath := flag.String("path", "./", "file or directory to be indexed")
+	flags := parseSearcherFlags()
 
-	flag.Parse()
+	fmt.Println("search path: ", flags.SearchPath)
 
-	path := ""
-	if pPath != nil {
-		path = *pPath
-	}
-
-	fmt.Println("path: ", path)
-
-	err := parseFiles(path)
+	err := parseFiles(flags.SearchPath)
 	if err != nil {
 		fmt.Println("error: ", err)
 	}
@@ -51,11 +48,15 @@ func parseFiles(rootPath string) error {
 	return err
 }
 
-func isDirectory(path string) (bool, error) {
-	fileInfo, err := os.Stat(path)
-	if err != nil {
-		return false, err
+func parseSearcherFlags() SearcherFlags {
+	pPath := flag.String("path", "./", "file or directory to be indexed")
+
+	flag.Parse()
+
+	path := ""
+	if pPath != nil {
+		path = *pPath
 	}
 
-	return fileInfo.IsDir(), err
+	return SearcherFlags{SearchPath: path}
 }
