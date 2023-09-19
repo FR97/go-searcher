@@ -3,13 +3,49 @@ package io
 import (
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"io"
-	"jaytaylor.com/html2text"
 	"os"
+	"path/filepath"
 	"strings"
+
+	"github.com/fr97/go-searcher/internal/config"
+	"jaytaylor.com/html2text"
 )
 
-func ParseFile(filePath string) (string, error) {
+func ParseFiles(config config.Config,
+	fileFilter func(string, os.FileInfo) bool,
+	withContent func(string, string),
+	withError func(error)) error {
+	err := filepath.Walk(config.SearchPath,
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			} else if info.IsDir() {
+				return nil
+			} else if !fileFilter(path, info) {
+				fmt.Println("skipping indexed file:", info.Name())
+				return nil
+			}
+
+			processFile(path, withContent, withError)
+
+			return nil
+		})
+
+	return err
+}
+
+func processFile(path string, withContent func(string, string), withError func(error)) {
+	content, err := parseFile(path)
+	if err != nil {
+		withError(err)
+	} else {
+		withContent(path, content)
+	}
+}
+
+func parseFile(filePath string) (string, error) {
 
 	if len(filePath) <= 0 {
 		return "", errors.New("empty file path")

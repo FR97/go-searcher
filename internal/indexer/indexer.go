@@ -1,11 +1,38 @@
 package indexer
 
 import (
+	"fmt"
+	"os"
 	"strings"
+	"time"
 	"unicode"
+
+	"github.com/fr97/go-searcher/internal/config"
+	"github.com/fr97/go-searcher/internal/io"
 )
 
 type TermFrequency map[string]uint
+
+func Index(config config.Config, index map[string]TermFrequency) {
+	io.ParseFiles(config,
+		func(path string, fi os.FileInfo) bool {
+			_, exists := index[path]
+			return !exists
+		},
+		func(file, content string) {
+			st := time.Now()
+			tf := IndexTermFreq(content)
+			et := time.Now()
+
+			fmt.Println("Indexing", file, "took", et.Sub(st).Nanoseconds(), "ns")
+			index[file] = tf
+		},
+		withError)
+}
+
+func withError(err error) {
+	fmt.Println(fmt.Errorf("error:%w", err))
+}
 
 func IndexTermFreq(content string) TermFrequency {
 	lexer := NewLexer(content)
