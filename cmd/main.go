@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/fr97/go-searcher/indexer"
-	"github.com/fr97/go-searcher/io"
+	"github.com/fr97/go-searcher/internal/indexer"
+	"github.com/fr97/go-searcher/internal/io"
 	"os"
 	"path/filepath"
 )
