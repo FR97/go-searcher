@@ -4,11 +4,10 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"os"
-	"path/filepath"
-
 	"github.com/fr97/go-searcher/indexer"
 	"github.com/fr97/go-searcher/io"
+	"os"
+	"path/filepath"
 )
 
 type SearcherFlags struct {
@@ -60,21 +59,25 @@ func parseFiles(rootPath string, withContent func(string, string)) error {
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
+			} else if info.IsDir() {
+				return nil
 			}
 
-			if !info.IsDir() {
-				content, err := io.ParseFile(path)
-				if err != nil {
-					fmt.Println(fmt.Errorf("error: %w", err))
-				} else {
-					withContent(path, content)
-				}
-			}
+			processFile(path, withContent)
 
 			return nil
 		})
 
 	return err
+}
+
+func processFile(path string, withContent func(string, string)) {
+	content, err := io.ParseFile(path)
+	if err != nil {
+		fmt.Println(fmt.Errorf("error: %w", err))
+	} else {
+		withContent(path, content)
+	}
 }
 
 func parseSearcherFlags() SearcherFlags {

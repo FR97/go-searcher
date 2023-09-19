@@ -30,7 +30,7 @@ func ParseFile(filePath string) (string, error) {
 		return readHtmlFileToString(filePath)
 	}
 
-	return "", errors.New("unsupported extension: " + extension)
+	return "", errors.New("unsupported extension " + extension)
 }
 
 func exractExtensionWithDot(filePath string) string {
