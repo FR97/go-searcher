@@ -13,8 +13,8 @@ import (
 
 type TermFrequency map[string]uint
 
-func Index(config config.Config, index map[string]TermFrequency) {
-	io.ParseFiles(config,
+func Index(cfg config.Config, index map[string]TermFrequency) {
+	io.ParseFiles(cfg,
 		func(path string, fi os.FileInfo) bool {
 			_, exists := index[path]
 			return !exists

@@ -13,11 +13,11 @@ import (
 	"jaytaylor.com/html2text"
 )
 
-func ParseFiles(config config.Config,
+func ParseFiles(cfg config.Config,
 	fileFilter func(string, os.FileInfo) bool,
 	withContent func(string, string),
 	withError func(error)) error {
-	err := filepath.Walk(config.SearchPath,
+	err := filepath.Walk(cfg.SearchPath,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
