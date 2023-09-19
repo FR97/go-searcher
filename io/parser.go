@@ -1,4 +1,4 @@
-package parser
+package io
 
 import (
 	"encoding/xml"
