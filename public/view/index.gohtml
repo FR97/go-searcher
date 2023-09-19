@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title> Go Searcher </title>
+
+    <!-- Roboto font -->
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900&display=swap"
+      rel="stylesheet" />
+
+    <!-- Tailwind Elements styles-->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/tw-elements/dist/css/tw-elements.min.css" />
+
+    <!-- Tailwind CSS config -->
+    <script src="https://cdn.tailwindcss.com/3.3.0"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          fontFamily: {
+            sans: ["Roboto", "sans-serif"],
+            body: ["Roboto", "sans-serif"],
+            mono: ["ui-monospace", "monospace"],
+          },
+        },
+        corePlugins: {
+          preflight: false,
+        },
+      };
+    </script>
+  </head>
+  <body>
+    <div id="main" class="">
+    <div class="search-div">
+      <form action="/?">
+        <input type="text" id="search-input" name="search-input"
+          class="bg-blue-900 peer dark:text-neutral-200"
+          placeholder="Search..." />
+        <input type="submit" value="Search"
+          class="bg-blue-800 peer"/>
+      </form>
+    </div>
+    {{if .HasQuery}}
+      <div class="result-div">
+        {{if .Results}}
+          <div class="mb-3 text-lg text-blue-700">
+            {{range .Results}}
+              <div class="search-result">
+                <div class="search-result-filename">{{.FileName}}</div>
+                <div class="search-result-filepath">{{.FilePath}}</div>
+              </div>
+            {{end}}
+          </div>
+        {{else}}
+          <div class="mb-3 text-lg text-blue-700">
+            No results found...
+          </div>
+        {{end}}
+      </div>
+    {{else}}
+      <div class="no-search">
+        Please search for some terms
+      </div>
+    {{end}}
+    </div>
+    <!-- Tailwind Elements JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/tw-elements/dist/js/tw-elements.umd.min.js"></script>
+  </body>
+</html>
+
