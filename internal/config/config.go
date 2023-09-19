@@ -17,6 +17,11 @@ type Config struct {
 	IndexFilePath string
 	Mode          Mode
 	Debug         bool
+	ServerConfig  ServerConfig
+}
+
+type ServerConfig struct {
+	Port int
 }
 
 func LoadConfig() Config {
@@ -28,6 +33,8 @@ func LoadConfig() Config {
 	flag.StringVar(&flags.SearchPath, "path", "./", "path tofile or directory to be indexed")
 	flag.StringVar(&flags.IndexFilePath, "index-file-path", "./index.json", "path to index file for reading/saving index data")
 	flag.BoolVar(&flags.Debug, "debug", false, "enable debug mode")
+
+	flag.IntVar(&flags.ServerConfig.Port, "server-port", 8000, "server port (default 8000)")
 
 	flag.Parse()
 
