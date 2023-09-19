@@ -42,7 +42,7 @@ func main() {
 		}
 	})
 	if err != nil {
-		fmt.Println("error:", err)
+		panic(err)
 	}
 
 	fmt.Println("indexed:", indexed)
