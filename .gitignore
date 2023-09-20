@@ -11,3 +11,6 @@
 *.out
 
 go.work
+
+# index.json ignore
+./index.json
