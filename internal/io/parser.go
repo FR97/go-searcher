@@ -3,7 +3,6 @@ package io
 import (
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"github.com/fr97/go-searcher/internal/config"
 	"io"
 	"jaytaylor.com/html2text"
@@ -23,10 +22,8 @@ func ParseFiles(cfg config.Config,
 			} else if info.IsDir() {
 				return nil
 			} else if !fileFilter(path, info) {
-				fmt.Println("skipping indexed file:", info.Name())
 				return nil
 			}
-
 			processFile(path, withContent, withError)
 
 			return nil
@@ -50,7 +47,7 @@ func parseFile(filePath string) (string, error) {
 		return "", errors.New("empty file path")
 	}
 
-	extension := exractExtensionWithDot(filePath)
+	extension := filepath.Ext(filePath)
 
 	if len(extension) <= 0 {
 		extension = ".txt"

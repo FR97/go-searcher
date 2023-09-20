@@ -16,6 +16,11 @@ func Index(cfg config.Config, index map[string]map[string]uint) {
 	io.ParseFiles(cfg,
 		func(path string, fi os.FileInfo) bool {
 			_, exists := index[path]
+
+			if exists {
+				fmt.Println("Skipping index indexed file:", path)
+			}
+
 			return !exists
 		},
 		func(file, content string) {
@@ -23,7 +28,7 @@ func Index(cfg config.Config, index map[string]map[string]uint) {
 			tf := IndexTermFreq(content)
 			et := time.Now()
 
-			fmt.Println("Indexing", file, "took", et.Sub(st).Nanoseconds(), "ns")
+			fmt.Println("Indexing", file, "took", et.Sub(st).Milliseconds(), "ms")
 			index[file] = tf
 		},
 		withError)

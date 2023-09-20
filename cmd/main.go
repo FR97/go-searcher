@@ -3,12 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/fr97/go-searcher/internal/config"
 	"github.com/fr97/go-searcher/internal/indexer"
 	"github.com/fr97/go-searcher/internal/io"
 	"github.com/fr97/go-searcher/internal/searcher"
 	"github.com/fr97/go-searcher/internal/server"
-	"os"
 )
 
 type FileIndex map[string]map[string]uint
@@ -27,21 +29,30 @@ func main() {
 
 	switch cfg.Mode {
 	case config.Index:
-		indexer.Index(cfg, indexed)
+		timed(
+			func() { indexer.Index(cfg, indexed) },
+			func(d time.Duration) {
+				fmt.Println("indexing took:", d.Milliseconds(), "ms")
+			})
 	case config.Search:
 		query := searcher.SearchQuery{
 			Input:  cfg.SearchQuery.Input,
 			Limit:  cfg.SearchQuery.Limit,
 			Offset: cfg.SearchQuery.Offset,
 		}
-		fmt.Println("results:", searcher.Search(query, searcher.Index(indexed)))
+		timed(
+			func() {
+				sr := searcher.Search(query, searcher.Index(indexed))
+				fmt.Println("results:", sr)
+			},
+			func(d time.Duration) {
+				fmt.Println("search took:", d.Milliseconds(), "ms")
+			})
 	case config.Serve:
 		server.Serve(cfg)
 	default:
 		fmt.Println("unsupported mode:", cfg.Mode)
 	}
-
-	fmt.Println("indexed:", indexed)
 
 	indexedJson, err := json.Marshal(indexed)
 	if err != nil {
@@ -49,4 +60,11 @@ func main() {
 	}
 
 	io.SaveToFile(cfg.IndexFilePath, indexedJson)
+}
+
+func timed(f func(), cb func(time.Duration)) {
+	start := time.Now()
+	f()
+	end := time.Now()
+	cb(end.Sub(start))
 }
