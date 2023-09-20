@@ -2,22 +2,31 @@ package config
 
 import (
 	"flag"
+	"os"
+	"strings"
 )
 
-type Mode string
+type Command string
 
 const (
-	Index  Mode = "index"
-	Search Mode = "search"
-	Serve  Mode = "serve"
+	Index  Command = "index"
+	Search Command = "search"
+	Serve  Command = "serve"
+	Help   Command = "help"
 )
 
+var Commands = map[string]Command{
+	"index":  Index,
+	"search": Search,
+	"serve":  Serve,
+	"help":   Help,
+}
+
 type Config struct {
+	Command       Command
 	IndexingPath  string
 	IndexFilePath string
 	SearchQuery   SearchQuery
-	Mode          Mode
-	Debug         bool
 	ServerConfig  ServerConfig
 }
 
@@ -32,35 +41,39 @@ type ServerConfig struct {
 }
 
 func LoadConfig() Config {
+	cmd := os.Args[1]
+	command, ok := Commands[cmd]
+	if !ok {
+		command = Help
+	}
 
-	flags := &Config{}
+	config := &Config{Command: command}
+	switch cmd {
+	case "index":
+		if len(os.Args) < 3 {
+			panic("<index-path> is required")
+		}
+		config.IndexingPath = os.Args[2]
+	case "search":
+		if len(os.Args) < 3 {
+			panic("<search-input> is required")
+		}
 
-	mode := flag.String("mode", "index", "mode to run (index|search|serve)")
+		input := os.Args[2]
+		if strings.TrimSpace(input) == "" {
+			panic("<search-input> cannot be empty")
+		}
+		config.SearchQuery.Input = input
 
-	flag.StringVar(&flags.IndexingPath, "path", "./", "path tofile or directory to be indexed")
-	flag.StringVar(&flags.IndexFilePath, "index-file-path", "./index.json", "path to index file for reading/saving index data")
-	flag.BoolVar(&flags.Debug, "debug", false, "enable debug mode")
+		flag.IntVar(&config.SearchQuery.Limit, "search-limit", 10, "search limit (default 10)")
+		flag.IntVar(&config.SearchQuery.Offset, "search-offset", 0, "search offset (default 0)")
+	case "serve":
+		flag.IntVar(&config.ServerConfig.Port, "port", 8000, "server port (default 8000)")
+	}
 
-	flag.StringVar(&flags.SearchQuery.Input, "search-input", "", "search input")
-	flag.IntVar(&flags.SearchQuery.Limit, "search-limit", 10, "search limit (default 10)")
-	flag.IntVar(&flags.SearchQuery.Offset, "search-offset", 0, "search offset (default 0)")
-
-	flag.IntVar(&flags.ServerConfig.Port, "server-port", 8000, "server port (default 8000)")
+	flag.StringVar(&config.IndexFilePath, "index-file-path", "./index.json", "path to index file for reading/saving index data")
 
 	flag.Parse()
 
-	if mode == nil {
-		panic("mode must be defined")
-	}
-
-	switch *mode {
-	case "index":
-		flags.Mode = Index
-	case "search":
-		flags.Mode = Search
-	case "serve":
-		flags.Mode = Serve
-	}
-
-	return *flags
+	return *config
 }

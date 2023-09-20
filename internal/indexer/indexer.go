@@ -2,17 +2,22 @@ package indexer
 
 import (
 	"fmt"
-	"github.com/fr97/go-searcher/internal/config"
-	"github.com/fr97/go-searcher/internal/io"
-	"github.com/fr97/go-searcher/internal/lexer"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/fr97/go-searcher/internal/config"
+	"github.com/fr97/go-searcher/internal/io"
+	"github.com/fr97/go-searcher/internal/lexer"
 )
 
 type TermFrequency map[string]uint
 
-func Index(cfg config.Config, index map[string]map[string]uint) {
+func Index(cfg config.Config) {
+	index, err := io.ReadIndexFile(cfg.IndexFilePath)
+	if err != nil {
+		fmt.Println("Index file not found, creating new index")
+	}
 	io.ParseFiles(cfg,
 		func(path string, fi os.FileInfo) bool {
 			_, exists := index[path]
@@ -32,6 +37,8 @@ func Index(cfg config.Config, index map[string]map[string]uint) {
 			index[file] = tf
 		},
 		withError)
+
+	io.WriteIndexFile(cfg.IndexFilePath, index)
 }
 
 func withError(err error) {
