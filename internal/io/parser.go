@@ -4,20 +4,19 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"github.com/fr97/go-searcher/internal/config"
 	"io"
+	"jaytaylor.com/html2text"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/fr97/go-searcher/internal/config"
-	"jaytaylor.com/html2text"
 )
 
 func ParseFiles(cfg config.Config,
 	fileFilter func(string, os.FileInfo) bool,
 	withContent func(string, string),
 	withError func(error)) error {
-	err := filepath.Walk(cfg.SearchPath,
+	err := filepath.Walk(cfg.IndexingPath,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err

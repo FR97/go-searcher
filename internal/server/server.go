@@ -21,7 +21,7 @@ func Serve(cfg config.Config) {
 
 type response struct {
 	HasQuery bool
-	Results  searchResult
+	Results  []searchResult
 }
 
 type searchResult struct {
