@@ -45,7 +45,7 @@ func Search(query SearchQuery, index Index) []SearchResult {
 		}
 
 		if totalFreq > 0 {
-            res := SearchResult{FilePath: file, Score: totalFreq}
+			res := SearchResult{FilePath: file, Score: totalFreq}
 			results = append(results, res)
 		}
 	}
