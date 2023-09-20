@@ -41,20 +41,23 @@ type ServerConfig struct {
 }
 
 func LoadConfig() Config {
-	cmd := os.Args[1]
-	command, ok := Commands[cmd]
-	if !ok {
-		command = Help
+	command := Help
+	if len(os.Args) > 1 {
+		c := os.Args[1]
+		cmd, ok := Commands[c]
+		if ok {
+			command = cmd
+		}
 	}
 
 	config := &Config{Command: command}
-	switch cmd {
-	case "index":
+	switch command {
+	case Index:
 		if len(os.Args) < 3 {
 			panic("<index-path> is required")
 		}
 		config.IndexingPath = os.Args[2]
-	case "search":
+	case Search:
 		if len(os.Args) < 3 {
 			panic("<search-input> is required")
 		}
@@ -67,7 +70,7 @@ func LoadConfig() Config {
 
 		flag.IntVar(&config.SearchQuery.Limit, "search-limit", 10, "search limit (default 10)")
 		flag.IntVar(&config.SearchQuery.Offset, "search-offset", 0, "search offset (default 0)")
-	case "serve":
+	case Serve:
 		flag.IntVar(&config.ServerConfig.Port, "port", 8000, "server port (default 8000)")
 	}
 

@@ -15,8 +15,6 @@ type FileIndex map[string]map[string]uint
 func main() {
 	cfg := config.LoadConfig()
 
-	fmt.Println("config:", cfg)
-
 	switch cfg.Command {
 	case config.Index:
 		timed(
