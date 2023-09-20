@@ -3,6 +3,7 @@ package searcher
 import (
 	"fmt"
 	"github.com/fr97/go-searcher/internal/lexer"
+	"math"
 	"sort"
 )
 
@@ -37,15 +38,15 @@ func Search(query SearchQuery, index Index) []SearchResult {
 	results := []SearchResult{}
 
 	for file, tfMap := range index {
-		totalFreq := 0.0
+		score := 0.0
 		for _, term := range terms {
-			tf := findTermFreqIndex(tfMap, term)
-			fmt.Println("tf:", tf)
-			totalFreq += tf
+			tf := findTermFreq(tfMap, term)
+			idf := findInverseDocFreq(index, term)
+			score += tf * idf
 		}
 
-		if totalFreq > 0 {
-			res := SearchResult{FilePath: file, Score: totalFreq}
+		if score > 0 {
+			res := SearchResult{FilePath: file, Score: score}
 			results = append(results, res)
 		}
 	}
@@ -57,7 +58,7 @@ func Search(query SearchQuery, index Index) []SearchResult {
 	return results
 }
 
-func findTermFreqIndex(tfMap map[string]uint, term string) float64 {
+func findTermFreq(tfMap map[string]uint, term string) float64 {
 	if len(tfMap) <= 0 {
 		return 0
 	}
@@ -69,4 +70,21 @@ func findTermFreqIndex(tfMap map[string]uint, term string) float64 {
 
 	tf := float64(tfMap[term])
 	return tf / float64(totalCount)
+}
+
+func findInverseDocFreq(index Index, term string) float64 {
+	docCount := float64(len(index))
+	termOccurrence := float64(0)
+	for _, tfMap := range index {
+		if _, ok := tfMap[term]; ok {
+			termOccurrence++
+		}
+	}
+
+	if termOccurrence == 0 {
+		termOccurrence = 1
+	}
+
+	idf := math.Log10(docCount / termOccurrence)
+	return idf
 }
