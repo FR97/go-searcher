@@ -1,7 +1,6 @@
 package searcher
 
 import (
-	"fmt"
 	"github.com/fr97/go-searcher/internal/lexer"
 	"math"
 	"sort"
@@ -31,7 +30,6 @@ func Search(query SearchQuery, index Index) []SearchResult {
 			break
 		}
 
-		fmt.Println("token:", token)
 		terms = append(terms, string(token))
 	}
 

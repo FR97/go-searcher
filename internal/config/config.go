@@ -50,6 +50,8 @@ func LoadConfig() Config {
 		}
 	}
 
+	flagSet := flag.NewFlagSet("", flag.ExitOnError)
+
 	config := &Config{Command: command}
 	switch command {
 	case Index:
@@ -68,15 +70,15 @@ func LoadConfig() Config {
 		}
 		config.SearchQuery.Input = input
 
-		flag.IntVar(&config.SearchQuery.Limit, "search-limit", 10, "search limit (default 10)")
-		flag.IntVar(&config.SearchQuery.Offset, "search-offset", 0, "search offset (default 0)")
+		flagSet.IntVar(&config.SearchQuery.Limit, "search-limit", 10, "search limit (default 10)")
+		flagSet.IntVar(&config.SearchQuery.Offset, "search-offset", 0, "search offset (default 0)")
 	case Serve:
-		flag.IntVar(&config.ServerConfig.Port, "port", 8000, "server port (default 8000)")
+		flagSet.IntVar(&config.ServerConfig.Port, "port", 8000, "server port (default 8000)")
 	}
 
-	flag.StringVar(&config.IndexFilePath, "index-file-path", "./index.json", "path to index file for reading/saving index data")
+	flagSet.StringVar(&config.IndexFilePath, "index-file-path", "./index.json", "path to index file for reading/saving index data")
 
-	flag.Parse()
+	flagSet.Parse(os.Args[2:])
 
 	return *config
 }

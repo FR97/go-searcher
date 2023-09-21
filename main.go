@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
 	"github.com/fr97/go-searcher/internal/config"
 	"github.com/fr97/go-searcher/internal/indexer"
@@ -11,6 +12,9 @@ import (
 )
 
 type FileIndex map[string]map[string]uint
+
+//go:embed public/view/index.gohtml
+var html string
 
 func main() {
 	cfg := config.LoadConfig()
@@ -39,7 +43,7 @@ func main() {
 			})
 	case config.Serve:
 		indexed := getIndexFile(cfg)
-		server.Serve(cfg, indexed)
+		server.Serve(cfg, indexed, html)
 	default:
 		help()
 	}

@@ -2,19 +2,19 @@ package server
 
 import (
 	"fmt"
-	"html/template"
-	"net/http"
-
 	"github.com/fr97/go-searcher/internal/config"
 	"github.com/fr97/go-searcher/internal/io"
 	"github.com/fr97/go-searcher/internal/searcher"
+	"html/template"
+	"net/http"
 )
 
-const HTML_TEMPLATES_PATH = "./public/view/"
+func Serve(cfg config.Config, indexed searcher.Index, html string) {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		handler(w, r, indexed, html)
+	})
 
-func Serve(cfg config.Config, indexed searcher.Index) {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { handler(w, r, indexed) })
-
+	fmt.Println("Starting server on port:", cfg.ServerConfig.Port)
 	err := http.ListenAndServe(fmt.Sprint(":", cfg.ServerConfig.Port), nil)
 	if err != nil {
 		panic(err)
@@ -32,20 +32,17 @@ type searchResult struct {
 	Score    float64
 }
 
-func handler(w http.ResponseWriter, r *http.Request, indexed searcher.Index) {
+func handler(w http.ResponseWriter, r *http.Request, indexed searcher.Index, html string) {
 	query := r.URL.Query()
-	fmt.Println("query:", query)
 	if query == nil || len(query) <= 0 {
-		htmlOK(w, response{HasQuery: false}, "index.gohtml")
+		htmlOK(w, response{HasQuery: false}, html)
 	} else {
 		input := query.Get("search-input")
-		fmt.Println("Starting search for:", input)
 		results := searcher.Search(searcher.SearchQuery{
 			Input:  input,
 			Limit:  10,
 			Offset: 0,
 		}, indexed)
-		fmt.Println("Search results:")
 		res := response{HasQuery: true, Results: []searchResult{}}
 		for _, result := range results {
 			res.Results = append(res.Results,
@@ -55,14 +52,14 @@ func handler(w http.ResponseWriter, r *http.Request, indexed searcher.Index) {
 					Score:    result.Score,
 				})
 		}
-		htmlOK(w, res, "index.gohtml")
+		htmlOK(w, res, html)
 	}
 }
 
 func htmlOK(w http.ResponseWriter, data interface{}, tmplFile string) {
 	w.Header().Add("content-type", "html")
 
-	tmpl, err := template.ParseFiles(HTML_TEMPLATES_PATH + tmplFile)
+	tmpl, err := template.New("index.gohtml").Parse(tmplFile)
 	if err != nil {
 		fmt.Println("failed to parse template:", err)
 	}
