@@ -8,6 +8,8 @@ import (
 	"github.com/fr97/go-searcher/internal/io"
 	"github.com/fr97/go-searcher/internal/searcher"
 	"github.com/fr97/go-searcher/internal/server"
+	"runtime"
+	"strings"
 	"time"
 )
 
@@ -50,15 +52,36 @@ func main() {
 }
 
 func help() {
-	fmt.Println("Usage: go-searcher [command]")
-	fmt.Println("Commands:")
-	fmt.Println("  index <index-path>")
-	fmt.Println("  search <search-input>")
-	fmt.Println("  serve")
+
+	osExt := ""
+	if runtime.GOOS == "windows" {
+		osExt = ".exe"
+	}
+
+	builder := strings.Builder{}
+
+	builder.WriteString("Usage: go-searcher" + osExt + " <command> <required-arg-value> [--opt-arg opt-arg-value]\n")
+	builder.WriteString("Commands:\n")
+	builder.WriteString("  index <index-path> [--indices-file (default: ./indices.json)]\n")
+	builder.WriteString("  search <search-input> [--indices-file (default: ./indices.json)]\n")
+	builder.WriteString("  serve [--indices-file (default: ./indices.json)] [--port (default: 8080)]\n\n")
+	builder.WriteString("Example for indexing all dirs/files under current dir and save in default indices file:\n")
+	builder.WriteString("  go-searcher" + osExt + " index ./\n")
+	builder.WriteString("\n")
+	builder.WriteString("Example for indexing everything under ./custom dir and save in custom-indices.json file:\n")
+	builder.WriteString("  go-searcher" + osExt + " index ./custom --indices-file ./custom-indices.json\n")
+	builder.WriteString("\n")
+	builder.WriteString("Example for searching 'hello world' in default indices file:\n")
+	builder.WriteString("  go-searcher" + osExt + " search 'hello world'\n")
+	builder.WriteString("\n")
+	builder.WriteString("Example for starting server with default indices.json file on custom port 9999:\n")
+	builder.WriteString("  go-searcher" + osExt + " serve --port 9999\n")
+
+	fmt.Println(builder.String())
 }
 
 func getIndexFile(cfg config.Config) searcher.Index {
-	indexed, err := io.ReadIndexFile(cfg.IndexFilePath)
+	indexed, err := io.ReadIndexFile(cfg.IndicesFilePath)
 	if err != nil {
 		panic("invalid index file, please run indexer first")
 	}

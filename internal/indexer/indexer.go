@@ -14,7 +14,7 @@ import (
 type TermFrequency map[string]uint
 
 func Index(cfg config.Config) {
-	index, err := io.ReadIndexFile(cfg.IndexFilePath)
+	index, err := io.ReadIndexFile(cfg.IndicesFilePath)
 	if err != nil {
 		fmt.Println("Index file not found, creating new index")
 	}
@@ -38,7 +38,7 @@ func Index(cfg config.Config) {
 		},
 		withError)
 
-	io.WriteIndexFile(cfg.IndexFilePath, index)
+	io.WriteIndexFile(cfg.IndicesFilePath, index)
 }
 
 func withError(err error) {

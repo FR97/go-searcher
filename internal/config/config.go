@@ -23,11 +23,11 @@ var Commands = map[string]Command{
 }
 
 type Config struct {
-	Command       Command
-	IndexingPath  string
-	IndexFilePath string
-	SearchQuery   SearchQuery
-	ServerConfig  ServerConfig
+	Command         Command
+	IndexingPath    string
+	IndicesFilePath string
+	SearchQuery     SearchQuery
+	ServerConfig    ServerConfig
 }
 
 type SearchQuery struct {
@@ -76,9 +76,11 @@ func LoadConfig() Config {
 		flagSet.IntVar(&config.ServerConfig.Port, "port", 8000, "server port (default 8000)")
 	}
 
-	flagSet.StringVar(&config.IndexFilePath, "index-file-path", "./index.json", "path to index file for reading/saving index data")
+	flagSet.StringVar(&config.IndicesFilePath, "indices-file", "./indices.json", "path to indeces file for reading/saving indeces data")
 
-	flagSet.Parse(os.Args[2:])
+	if len(os.Args) >= 3 {
+		flagSet.Parse(os.Args[2:])
+	}
 
 	return *config
 }

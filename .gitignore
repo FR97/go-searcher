@@ -14,6 +14,6 @@ go.work
 
 # index.json ignore
 ./index.json
-
+./indeces.json
 # ignore binaries
 bin
