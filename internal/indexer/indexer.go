@@ -12,12 +12,21 @@ import (
 )
 
 type TermFrequency map[string]uint
+type DocumentFrequency map[string]uint
+
+type Indices struct {
+	TermFreq TermFrequency
+	DocFreq  DocumentFrequency
+}
 
 func Index(cfg config.Config) {
 	index, err := io.ReadIndexFile(cfg.IndicesFilePath)
 	if err != nil {
 		fmt.Println("Index file not found, creating new index")
 	}
+
+	docFreq := map[string]uint{}
+
 	io.ParseFiles(cfg,
 		func(path string, fi os.FileInfo) bool {
 			_, exists := index[path]
@@ -35,6 +44,10 @@ func Index(cfg config.Config) {
 
 			fmt.Println("Indexing", file, "took", et.Sub(st).Milliseconds(), "ms")
 			index[file] = tf
+
+			for k, v := range tf {
+				docFreq[k] = docFreq[k] + v
+			}
 		},
 		withError)
 
