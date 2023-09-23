@@ -18,7 +18,7 @@ func Index(cfg config.Config) {
 		fmt.Println("Index file not found, creating new index")
 	}
 
-	io.ParseFiles(cfg,
+	io.ParseFiles(cfg.IndexConfig.IndexingPath,
 		func(path string, fi os.FileInfo) bool {
 			cached, exists := cache.FileToTermFreq[path]
 

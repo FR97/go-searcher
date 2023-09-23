@@ -30,9 +30,9 @@ func main() {
 	case config.Search:
 		indices := loadCacheFile(cfg)
 		query := searcher.SearchQuery{
-			Input:  cfg.SearchQuery.Input,
-			Limit:  cfg.SearchQuery.Limit,
-			Offset: cfg.SearchQuery.Offset,
+			Input:  cfg.SearchConfig.Input,
+			Limit:  cfg.SearchConfig.Limit,
+			Offset: cfg.SearchConfig.Offset,
 		}
 		timed(
 			func() {

@@ -24,10 +24,15 @@ var Commands = map[string]Command{
 
 type Config struct {
 	Command       Command
-	IndexingPath  string
 	CacheFilePath string
-	SearchQuery   SearchQuery
+	IndexConfig   IndexConfig
+	SearchConfig  SearchQuery
 	ServerConfig  ServerConfig
+}
+
+type IndexConfig struct {
+	IndexingPath string
+	Threads      int
 }
 
 type SearchQuery struct {
@@ -58,7 +63,9 @@ func LoadConfig() Config {
 		if len(os.Args) < 3 {
 			panic("<index-path> is required")
 		}
-		config.IndexingPath = os.Args[2]
+		config.IndexConfig.IndexingPath = os.Args[2]
+
+		flagSet.IntVar(&config.IndexConfig.Threads, "threads", 1, "number of threads (default 1 for non parallel execution)")
 	case Search:
 		if len(os.Args) < 3 {
 			panic("<search-input> is required")
@@ -68,10 +75,10 @@ func LoadConfig() Config {
 		if strings.TrimSpace(input) == "" {
 			panic("<search-input> cannot be empty")
 		}
-		config.SearchQuery.Input = input
+		config.SearchConfig.Input = input
 
-		flagSet.IntVar(&config.SearchQuery.Limit, "search-limit", 10, "search limit (default 10)")
-		flagSet.IntVar(&config.SearchQuery.Offset, "search-offset", 0, "search offset (default 0)")
+		flagSet.IntVar(&config.SearchConfig.Limit, "search-limit", 10, "search limit (default 10)")
+		flagSet.IntVar(&config.SearchConfig.Offset, "search-offset", 0, "search offset (default 0)")
 	case Serve:
 		flagSet.IntVar(&config.ServerConfig.Port, "port", 8000, "server port (default 8000)")
 	}

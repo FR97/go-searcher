@@ -3,7 +3,6 @@ package io
 import (
 	"encoding/xml"
 	"errors"
-	"github.com/fr97/go-searcher/internal/config"
 	"io"
 	"jaytaylor.com/html2text"
 	"os"
@@ -11,11 +10,11 @@ import (
 	"strings"
 )
 
-func ParseFiles(cfg config.Config,
+func ParseFiles(path string,
 	fileFilter func(string, os.FileInfo) bool,
 	withContent func(string, string),
 	withError func(error)) error {
-	err := filepath.Walk(cfg.IndexingPath,
+	err := filepath.Walk(path,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
@@ -63,14 +62,6 @@ func parseFile(filePath string) (string, error) {
 	}
 
 	return "", errors.New("unsupported extension " + extension)
-}
-
-func exractExtensionWithDot(filePath string) string {
-	dotIndex := strings.LastIndex(filePath, ".")
-	if dotIndex == -1 {
-		return ""
-	}
-	return filePath[dotIndex:]
 }
 
 func readRawFileToString(filePath string) (string, error) {
