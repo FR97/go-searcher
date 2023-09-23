@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/fr97/go-searcher/internal/cache"
 	"github.com/fr97/go-searcher/internal/config"
 	"github.com/fr97/go-searcher/internal/io"
 	"github.com/fr97/go-searcher/internal/searcher"
@@ -9,9 +10,10 @@ import (
 	"net/http"
 )
 
-func Serve(cfg config.Config, indexed searcher.Index, html string) {
+func Serve(cfg config.Config, cache cache.Cache, html string) {
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		handler(w, r, indexed, html)
+		handler(w, r, cache, html)
 	})
 
 	fmt.Println("Starting server on port:", cfg.ServerConfig.Port)
@@ -32,7 +34,7 @@ type searchResult struct {
 	Score    float64
 }
 
-func handler(w http.ResponseWriter, r *http.Request, indexed searcher.Index, html string) {
+func handler(w http.ResponseWriter, r *http.Request, cache cache.Cache, html string) {
 	query := r.URL.Query()
 	if query == nil || len(query) <= 0 {
 		htmlOK(w, response{HasQuery: false}, html)
@@ -42,7 +44,7 @@ func handler(w http.ResponseWriter, r *http.Request, indexed searcher.Index, htm
 			Input:  input,
 			Limit:  10,
 			Offset: 0,
-		}, indexed)
+		}, cache)
 		res := response{HasQuery: true, Results: []searchResult{}}
 		for _, result := range results {
 			res.Results = append(res.Results,
@@ -56,7 +58,7 @@ func handler(w http.ResponseWriter, r *http.Request, indexed searcher.Index, htm
 	}
 }
 
-func htmlOK(w http.ResponseWriter, data interface{}, tmplFile string) {
+func htmlOK(w http.ResponseWriter, res response, tmplFile string) {
 	w.Header().Add("content-type", "html")
 
 	tmpl, err := template.New("index.gohtml").Parse(tmplFile)
@@ -64,5 +66,5 @@ func htmlOK(w http.ResponseWriter, data interface{}, tmplFile string) {
 		fmt.Println("failed to parse template:", err)
 	}
 
-	tmpl.Execute(w, data)
+	tmpl.Execute(w, res)
 }

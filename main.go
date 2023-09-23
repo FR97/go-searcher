@@ -3,6 +3,7 @@ package main
 import (
 	_ "embed"
 	"fmt"
+	"github.com/fr97/go-searcher/internal/cache"
 	"github.com/fr97/go-searcher/internal/config"
 	"github.com/fr97/go-searcher/internal/indexer"
 	"github.com/fr97/go-searcher/internal/io"
@@ -12,8 +13,6 @@ import (
 	"strings"
 	"time"
 )
-
-type FileIndex map[string]map[string]uint
 
 //go:embed public/view/index.gohtml
 var html string
@@ -29,7 +28,7 @@ func main() {
 				fmt.Println("indexing took:", d.Milliseconds(), "ms")
 			})
 	case config.Search:
-		indexed := getIndexFile(cfg)
+		indices := getIndexFile(cfg)
 		query := searcher.SearchQuery{
 			Input:  cfg.SearchQuery.Input,
 			Limit:  cfg.SearchQuery.Limit,
@@ -37,15 +36,15 @@ func main() {
 		}
 		timed(
 			func() {
-				sr := searcher.Search(query, searcher.Index(indexed))
+				sr := searcher.Search(query, indices)
 				fmt.Println("results:", sr)
 			},
 			func(d time.Duration) {
 				fmt.Println("search took:", d.Milliseconds(), "ms")
 			})
 	case config.Serve:
-		indexed := getIndexFile(cfg)
-		server.Serve(cfg, indexed, html)
+		indices := getIndexFile(cfg)
+		server.Serve(cfg, indices, html)
 	default:
 		help()
 	}
@@ -80,12 +79,12 @@ func help() {
 	fmt.Println(builder.String())
 }
 
-func getIndexFile(cfg config.Config) searcher.Index {
-	indexed, err := io.ReadIndexFile(cfg.IndicesFilePath)
+func getIndexFile(cfg config.Config) cache.Cache {
+	indices, err := io.ReadCache(cfg.IndicesFilePath)
 	if err != nil {
 		panic("invalid index file, please run indexer first")
 	}
-	return searcher.Index(indexed)
+	return indices
 }
 
 func timed(f func(), cb func(time.Duration)) {

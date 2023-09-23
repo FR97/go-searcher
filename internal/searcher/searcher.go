@@ -1,12 +1,11 @@
 package searcher
 
 import (
+	"github.com/fr97/go-searcher/internal/cache"
 	"github.com/fr97/go-searcher/internal/lexer"
 	"math"
 	"sort"
 )
-
-type Index map[string]map[string]uint
 
 type SearchQuery struct {
 	Input  string
@@ -19,7 +18,7 @@ type SearchResult struct {
 	Score    float64
 }
 
-func Search(query SearchQuery, index Index) []SearchResult {
+func Search(query SearchQuery, cache cache.Cache) []SearchResult {
 
 	lexer := lexer.NewLexer(query.Input)
 	terms := []string{}
@@ -35,11 +34,11 @@ func Search(query SearchQuery, index Index) []SearchResult {
 
 	results := []SearchResult{}
 
-	for file, tfMap := range index {
+	for file, ftf := range cache.FileToTermFreq {
 		score := 0.0
 		for _, term := range terms {
-			tf := findTermFreq(tfMap, term)
-			idf := findInverseDocFreq(index, term)
+			tf := caclulateTF(ftf, term)
+			idf := calculateIDF(cache, term)
 			score += tf * idf
 		}
 
@@ -56,33 +55,24 @@ func Search(query SearchQuery, index Index) []SearchResult {
 	return results
 }
 
-func findTermFreq(tfMap map[string]uint, term string) float64 {
-	if len(tfMap) <= 0 {
+func caclulateTF(ftf cache.FileTermFrequency, term string) float64 {
+	if len(ftf.TF) <= 0 {
 		return 0
 	}
 
-	totalCount := uint(0)
-	for _, count := range tfMap {
-		totalCount += count
-	}
-
-	tf := float64(tfMap[term])
-	return tf / float64(totalCount)
+	tf := float64(ftf.TF[term])
+	return tf / float64(ftf.TotalTermCount)
 }
 
-func findInverseDocFreq(index Index, term string) float64 {
-	docCount := float64(len(index))
-	termOccurrence := float64(0)
-	for _, tfMap := range index {
-		if _, ok := tfMap[term]; ok {
-			termOccurrence++
-		}
-	}
+func calculateIDF(cache cache.Cache, term string) float64 {
+	docCount := float64(len(cache.FileToTermFreq))
+	termOccurrence := float64(cache.TermToFileFreq[term])
 
 	if termOccurrence == 0 {
 		termOccurrence = 1
 	}
 
 	idf := math.Log10(docCount / termOccurrence)
+
 	return idf
 }

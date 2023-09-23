@@ -2,25 +2,26 @@ package io
 
 import (
 	"encoding/json"
+	"github.com/fr97/go-searcher/internal/cache"
 	"os"
 	"path/filepath"
 )
 
-func ReadIndexFile(path string) (map[string]map[string]uint, error) {
-	indexed := map[string]map[string]uint{}
+func ReadCache(path string) (cache.Cache, error) {
+	cache := cache.NewCache()
 	bytes, err := os.ReadFile(path)
 	if err != nil {
-		return indexed, err
+		return cache, err
 	}
-	err = json.Unmarshal(bytes, &indexed)
+	err = json.Unmarshal(bytes, &cache)
 	if err != nil {
-		return indexed, err
+		return cache, err
 	}
-	return indexed, nil
+	return cache, nil
 }
 
-func WriteIndexFile(path string, indexed map[string]map[string]uint) error {
-	data, err := json.Marshal(indexed)
+func WriteCache(path string, cache cache.Cache) error {
+	data, err := json.Marshal(cache)
 	if err != nil {
 		panic("failed to marshal indexed data to json")
 	}
