@@ -1,13 +1,16 @@
 package io
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/xml"
 	"errors"
 	"io"
-	"jaytaylor.com/html2text"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"jaytaylor.com/html2text"
 )
 
 func ParseFiles(path string,
@@ -65,24 +68,22 @@ func parseFile(filePath string) (string, error) {
 }
 
 func readRawFileToString(filePath string) (string, error) {
-	bytes, err := os.ReadFile(filePath)
+	fb, err := os.ReadFile(filePath)
 
 	if err != nil {
 		return "", err
 	}
 
-	return string(bytes), nil
+	return string(fb), nil
 }
 
 func readXmlFileToString(filePath string) (string, error) {
-	f, err := os.Open(filePath)
+	fb, err := os.ReadFile(filePath)
 	if err != nil {
 		return "", err
 	}
 
-	defer f.Close()
-
-	decoder := xml.NewDecoder(f)
+	decoder := xml.NewDecoder(bytes.NewBuffer(fb))
 
 	var sb strings.Builder
 
@@ -105,12 +106,13 @@ func readXmlFileToString(filePath string) (string, error) {
 }
 
 func readHtmlFileToString(filePath string) (string, error) {
-	bytes, err := os.ReadFile(filePath)
+	fb, err := os.ReadFile(filePath)
 	if err != nil {
 		return "", err
 	}
 
-	str, err := html2text.FromString(string(bytes), html2text.Options{TextOnly: true})
+	opts := html2text.Options{TextOnly: true}
+	str, err := html2text.FromString(string(fb), opts)
 	if err != nil {
 		return "", err
 	}
