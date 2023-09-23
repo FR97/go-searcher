@@ -52,7 +52,7 @@ func Search(query SearchQuery, cache cache.Cache) []SearchResult {
 		return results[i].Score > results[j].Score
 	})
 
-	return results
+	return results[query.Offset : query.Offset+query.Limit]
 }
 
 func caclulateTF(ftf cache.FileTermFrequency, term string) float64 {

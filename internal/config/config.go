@@ -77,8 +77,8 @@ func LoadConfig() Config {
 		}
 		config.SearchConfig.Input = input
 
-		flagSet.IntVar(&config.SearchConfig.Limit, "search-limit", 10, "search limit (default 10)")
-		flagSet.IntVar(&config.SearchConfig.Offset, "search-offset", 0, "search offset (default 0)")
+		flagSet.IntVar(&config.SearchConfig.Limit, "limit", 20, "search limit (default 20)")
+		flagSet.IntVar(&config.SearchConfig.Offset, "offset", 0, "search offset (default 0)")
 	case Serve:
 		flagSet.IntVar(&config.ServerConfig.Port, "port", 8000, "server port (default 8000)")
 	}

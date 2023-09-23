@@ -2,14 +2,13 @@ package indexer
 
 import (
 	"fmt"
-	"os"
-	"strings"
-	"time"
-
 	"github.com/fr97/go-searcher/internal/cache"
 	"github.com/fr97/go-searcher/internal/config"
 	"github.com/fr97/go-searcher/internal/io"
 	"github.com/fr97/go-searcher/internal/lexer"
+	"os"
+	"strings"
+	"time"
 )
 
 func Index(cfg config.Config) {

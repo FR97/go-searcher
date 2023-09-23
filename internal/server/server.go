@@ -42,7 +42,7 @@ func handler(w http.ResponseWriter, r *http.Request, cache cache.Cache, html str
 		input := query.Get("search-input")
 		results := searcher.Search(searcher.SearchQuery{
 			Input:  input,
-			Limit:  10,
+			Limit:  20,
 			Offset: 0,
 		}, cache)
 		res := response{HasQuery: true, Results: []searchResult{}}

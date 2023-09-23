@@ -1,7 +1,6 @@
 package io
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/xml"
 	"errors"
