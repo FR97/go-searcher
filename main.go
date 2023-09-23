@@ -28,7 +28,7 @@ func main() {
 				fmt.Println("indexing took:", d.Milliseconds(), "ms")
 			})
 	case config.Search:
-		indices := getIndexFile(cfg)
+		indices := loadCacheFile(cfg)
 		query := searcher.SearchQuery{
 			Input:  cfg.SearchQuery.Input,
 			Limit:  cfg.SearchQuery.Limit,
@@ -43,7 +43,7 @@ func main() {
 				fmt.Println("search took:", d.Milliseconds(), "ms")
 			})
 	case config.Serve:
-		indices := getIndexFile(cfg)
+		indices := loadCacheFile(cfg)
 		server.Serve(cfg, indices, html)
 	default:
 		help()
@@ -61,30 +61,30 @@ func help() {
 
 	builder.WriteString("Usage: go-searcher" + osExt + " <command> <required-arg-value> [--opt-arg opt-arg-value]\n")
 	builder.WriteString("Commands:\n")
-	builder.WriteString("  index <index-path> [--indices-file (default: ./indices.json)]\n")
-	builder.WriteString("  search <search-input> [--indices-file (default: ./indices.json)]\n")
-	builder.WriteString("  serve [--indices-file (default: ./indices.json)] [--port (default: 8080)]\n\n")
-	builder.WriteString("Example for indexing all dirs/files under current dir and save in default indices file:\n")
+	builder.WriteString("  index <index-path> [--cache-file (default: ./cache.json)]\n")
+	builder.WriteString("  search <search-input> [--cache-file (default: ./cache.json)]\n")
+	builder.WriteString("  serve [--cache-file (default: ./cache.json)] [--port (default: 8080)]\n\n")
+	builder.WriteString("Example for indexing all dirs/files under current dir and save in default cache file:\n")
 	builder.WriteString("  go-searcher" + osExt + " index ./\n")
 	builder.WriteString("\n")
-	builder.WriteString("Example for indexing everything under ./custom dir and save in custom-indices.json file:\n")
-	builder.WriteString("  go-searcher" + osExt + " index ./custom --indices-file ./custom-indices.json\n")
+	builder.WriteString("Example for indexing everything under ./custom dir and save in custom-cache.json file:\n")
+	builder.WriteString("  go-searcher" + osExt + " index ./custom --cache-file ./custom-cache.json\n")
 	builder.WriteString("\n")
-	builder.WriteString("Example for searching 'hello world' in default indices file:\n")
+	builder.WriteString("Example for searching 'hello world' in default cache file:\n")
 	builder.WriteString("  go-searcher" + osExt + " search 'hello world'\n")
 	builder.WriteString("\n")
-	builder.WriteString("Example for starting server with default indices.json file on custom port 9999:\n")
+	builder.WriteString("Example for starting server with default cache.json file on custom port 9999:\n")
 	builder.WriteString("  go-searcher" + osExt + " serve --port 9999\n")
 
 	fmt.Println(builder.String())
 }
 
-func getIndexFile(cfg config.Config) cache.Cache {
-	indices, err := io.ReadCache(cfg.IndicesFilePath)
+func loadCacheFile(cfg config.Config) cache.Cache {
+	cache, err := io.ReadCache(cfg.CacheFilePath)
 	if err != nil {
-		panic("invalid index file, please run indexer first")
+		panic("cache file not found, please run index command first")
 	}
-	return indices
+	return cache
 }
 
 func timed(f func(), cb func(time.Duration)) {

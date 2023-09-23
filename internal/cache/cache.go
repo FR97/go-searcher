@@ -4,6 +4,7 @@ package cache
 type FileTermFrequency struct {
 	TF             map[string]uint
 	TotalTermCount uint
+	IndexTime      int64
 }
 
 // In how many files does a term appear

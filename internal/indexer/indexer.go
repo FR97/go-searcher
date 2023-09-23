@@ -13,36 +13,44 @@ import (
 )
 
 func Index(cfg config.Config) {
-	cache, err := io.ReadCache(cfg.IndicesFilePath)
+	cache, err := io.ReadCache(cfg.CacheFilePath)
 	if err != nil {
 		fmt.Println("Index file not found, creating new index")
 	}
 
 	io.ParseFiles(cfg,
 		func(path string, fi os.FileInfo) bool {
-			_, exists := cache.FileToTermFreq[path]
+			cached, exists := cache.FileToTermFreq[path]
 
-			if exists {
-				fmt.Println("Skipping index indexed file:", path)
+			if !exists {
+				fmt.Println("Indexing new file:", path)
+				return true
 			}
 
-			return !exists
+			if fi.ModTime().UnixMilli() > cached.IndexTime {
+				fmt.Println("Reindexing modified file:", path)
+				return true
+			}
+
+			fmt.Println("Skipping already indexed file:", path)
+			return false
 		},
 		func(file, content string) {
 			st := time.Now()
 			tf := IndexFileTermFreq(content)
 			et := time.Now()
 
-			fmt.Println("Indexing", file, "took", et.Sub(st).Milliseconds(), "ms")
 			cache.FileToTermFreq[file] = tf
 
 			for k := range tf.TF {
 				cache.TermToFileFreq[k] = cache.TermToFileFreq[k] + 1
 			}
+
+			fmt.Println("Indexing", file, "took", et.Sub(st).Milliseconds(), "ms")
 		},
 		withError)
 
-	io.WriteCache(cfg.IndicesFilePath, cache)
+	io.WriteCache(cfg.CacheFilePath, cache)
 }
 
 func withError(err error) {
@@ -51,7 +59,7 @@ func withError(err error) {
 
 func IndexFileTermFreq(content string) cache.FileTermFrequency {
 	lexer := lexer.NewLexer(content)
-	ftf := cache.FileTermFrequency{TF: map[string]uint{}}
+	ftf := cache.FileTermFrequency{TF: map[string]uint{}, IndexTime: time.Now().UnixMilli()}
 
 	for {
 		token, ok := lexer.NextToken()
