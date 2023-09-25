@@ -62,7 +62,7 @@ func help() {
 
 	builder.WriteString("Usage: go-searcher" + osExt + " <command> <required-arg-value> [--opt-arg opt-arg-value]\n")
 	builder.WriteString("Commands:\n")
-	builder.WriteString("  index <index-path> [--cache-file (default: ./cache.json)]\n")
+	builder.WriteString("  index <index-path> [--cache-file (default: ./cache.json)] [--threads (default: 1)]\n")
 	builder.WriteString("  search <search-input> [--cache-file (default: ./cache.json)]\n")
 	builder.WriteString("  serve [--cache-file (default: ./cache.json)] [--port (default: 8080)]\n\n")
 	builder.WriteString("Example for indexing all dirs/files under current dir and save in default cache file:\n")
