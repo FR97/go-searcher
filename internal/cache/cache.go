@@ -1,6 +1,6 @@
 package cache
 
-// How many team does each term appear in a document
+// How many times does each term appear in a document
 type FileTermFrequency struct {
 	TF             map[string]uint
 	TotalTermCount uint

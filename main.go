@@ -3,15 +3,16 @@ package main
 import (
 	_ "embed"
 	"fmt"
+	"runtime"
+	"strings"
+	"time"
+
 	"github.com/fr97/go-searcher/internal/cache"
 	"github.com/fr97/go-searcher/internal/config"
 	"github.com/fr97/go-searcher/internal/indexer"
 	"github.com/fr97/go-searcher/internal/io"
 	"github.com/fr97/go-searcher/internal/searcher"
 	"github.com/fr97/go-searcher/internal/server"
-	"runtime"
-	"strings"
-	"time"
 )
 
 //go:embed public/view/index.gohtml

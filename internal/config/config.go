@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"strings"
 )
@@ -56,15 +57,20 @@ func LoadConfig() Config {
 	}
 
 	flagSet := flag.NewFlagSet("", flag.ExitOnError)
+	flagOffset := 2
 
-	config := &Config{Command: command}
+	config := &Config{
+		Command:      command,
+		IndexConfig:  IndexConfig{},
+		SearchConfig: SearchQuery{},
+		ServerConfig: ServerConfig{}}
 	switch command {
 	case Index:
 		if len(os.Args) < 3 {
 			panic("<index-path> is required")
 		}
 		config.IndexConfig.IndexingPath = os.Args[2]
-
+		flagOffset = 3
 		flagSet.IntVar(&config.IndexConfig.Threads, "threads", 1, "number of threads (default 1 for non parallel execution)")
 	case Search:
 		if len(os.Args) < 3 {
@@ -76,7 +82,7 @@ func LoadConfig() Config {
 			panic("<search-input> cannot be empty")
 		}
 		config.SearchConfig.Input = input
-
+		flagOffset = 3
 		flagSet.IntVar(&config.SearchConfig.Limit, "limit", 20, "search limit (default 20)")
 		flagSet.IntVar(&config.SearchConfig.Offset, "offset", 0, "search offset (default 0)")
 	case Serve:
@@ -85,9 +91,12 @@ func LoadConfig() Config {
 
 	flagSet.StringVar(&config.CacheFilePath, "cache-file", "./cache.json", "path to index file for reading/saving indeces data")
 
-	if len(os.Args) >= 3 {
-		flagSet.Parse(os.Args[2:])
+	if len(os.Args) > flagOffset {
+		fmt.Println("parsing args")
+		flagSet.Parse(os.Args[flagOffset:])
 	}
+
+	fmt.Println("config:", config)
 
 	return *config
 }

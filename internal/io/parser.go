@@ -4,17 +4,19 @@ import (
 	"bytes"
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"jaytaylor.com/html2text"
 )
 
 func ParseFiles(path string,
-	fileFilter func(string, os.FileInfo) bool,
-	withContent func(string, string),
+	fileFilter func(string, int64) bool,
+	withContent func(string, int64, string),
 	withError func(error)) error {
 	err := filepath.Walk(path,
 		func(path string, info os.FileInfo, err error) error {
@@ -22,15 +24,79 @@ func ParseFiles(path string,
 				return err
 			} else if info.IsDir() {
 				return nil
-			} else if !fileFilter(path, info) {
+			} else if !fileFilter(path, info.ModTime().UnixMilli()) {
 				return nil
 			}
-			processFile(path, withContent, withError)
+
+			processFile(path,
+				func(p, c string) {
+					withContent(p, info.ModTime().UnixMilli(), c)
+				},
+				withError)
 
 			return nil
 		})
 
 	return err
+}
+
+func ParseFilesMT(
+	wg *sync.WaitGroup,
+	//ch chan io.ParseReq,
+	path string,
+	threads int,
+	fileFilter func(string, int64) bool,
+	withContent func(string, int64, string),
+	withError func(error),
+) error {
+
+	ch := make(chan ParseReq, threads*2)
+	defer close(ch)
+	fmt.Println("starting", threads, "workers")
+	for i := 0; i < threads; i++ {
+		go ParseWorker(i, ch, func(pr ParseReq) {
+			processFileMT(pr, withContent, withError)
+		})
+	}
+
+	err := filepath.Walk(path,
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			} else if info.IsDir() {
+				return nil
+			} else if !fileFilter(path, info.ModTime().UnixMilli()) {
+				return nil
+			}
+
+			req := ParseReq{path, info.ModTime().UnixMilli()}
+			wg.Add(1)
+			for loop := true; loop; {
+				select {
+				case ch <- req:
+					loop = false
+				default:
+				}
+			}
+
+			return nil
+		})
+
+	wg.Wait()
+	return err
+}
+
+func processFileMT(
+	//	wg *sync.WaitGroup,
+	req ParseReq,
+	withContent func(string, int64, string),
+	withError func(error)) {
+	content, err := parseFile(req.Path)
+	if err != nil {
+		withError(err)
+	} else {
+		withContent(req.Path, req.ModTime, content)
+	}
 }
 
 func processFile(path string, withContent func(string, string), withError func(error)) {

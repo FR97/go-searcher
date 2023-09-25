@@ -2,63 +2,101 @@ package indexer
 
 import (
 	"fmt"
+	"strings"
+	"sync"
+
 	"github.com/fr97/go-searcher/internal/cache"
 	"github.com/fr97/go-searcher/internal/config"
 	"github.com/fr97/go-searcher/internal/io"
 	"github.com/fr97/go-searcher/internal/lexer"
-	"os"
-	"strings"
-	"time"
 )
 
+type indexRes struct {
+	file string
+	tf   cache.FileTermFrequency
+}
+
 func Index(cfg config.Config) {
-	cache, err := io.ReadCache(cfg.CacheFilePath)
+	cached, err := io.ReadCache(cfg.CacheFilePath)
 	if err != nil {
 		fmt.Println("Index file not found, creating new index")
 	}
 
-	io.ParseFiles(cfg.IndexConfig.IndexingPath,
-		func(path string, fi os.FileInfo) bool {
-			cached, exists := cache.FileToTermFreq[path]
+	ch := make(chan indexRes, cfg.IndexConfig.Threads*4)
+	//	parseCh := make(chan io.ParseReq)
+	doneParse := make(chan struct{})
+	//defer close(done)
+	defer close(ch)
+	//	defer close(parseCh)
+	defer close(doneParse)
 
-			if !exists {
-				fmt.Println("Indexing new file:", path)
-				return true
+	wg := &sync.WaitGroup{}
+	mutex := &sync.Mutex{}
+	//wg.Add(1)
+	go func() {
+		io.ParseFilesMT(
+			wg,
+			cfg.IndexConfig.IndexingPath,
+			cfg.IndexConfig.Threads,
+			func(path string, modTime int64) bool {
+				mutex.Lock()
+				cached, exists := cached.FileToTermFreq[path]
+				mutex.Unlock()
+
+				if !exists {
+					fmt.Println("Indexing new file:", path)
+					return true
+				}
+
+				if modTime > cached.IndexTime {
+					fmt.Println("Reindexing modified file:", path)
+					return true
+				}
+
+				fmt.Println("Skipping already indexed file:", path)
+				return false
+			},
+			func(file string, modTime int64, content string) {
+				tf := IndexFileTermFreq(modTime, content)
+				ch <- indexRes{file, tf}
+			},
+			func(err error) {
+				withError(err)
+				wg.Done()
+			})
+		fmt.Println("Parsing finished closing channel")
+		doneParse <- struct{}{}
+	}()
+
+	go func() {
+		for res := range ch {
+			mutex.Lock()
+			cached.FileToTermFreq[res.file] = res.tf
+			for k := range res.tf.TF {
+				cached.TermToFileFreq[k] = cached.TermToFileFreq[k] + 1
 			}
+			mutex.Unlock()
+			fmt.Println("Indexed file:", res.file)
+			wg.Done()
+		}
+	}()
 
-			if fi.ModTime().UnixMilli() > cached.IndexTime {
-				fmt.Println("Reindexing modified file:", path)
-				return true
-			}
+	fmt.Println("Waiting for parse to finish...")
+	<-doneParse
 
-			fmt.Println("Skipping already indexed file:", path)
-			return false
-		},
-		func(file, content string) {
-			st := time.Now()
-			tf := IndexFileTermFreq(content)
-			et := time.Now()
-
-			cache.FileToTermFreq[file] = tf
-
-			for k := range tf.TF {
-				cache.TermToFileFreq[k] = cache.TermToFileFreq[k] + 1
-			}
-
-			fmt.Println("Indexing", file, "took", et.Sub(st).Milliseconds(), "ms")
-		},
-		withError)
-
-	io.WriteCache(cfg.CacheFilePath, cache)
+	io.WriteCache(cfg.CacheFilePath, cached)
 }
 
 func withError(err error) {
 	fmt.Println(fmt.Errorf("error:%w", err))
 }
 
-func IndexFileTermFreq(content string) cache.FileTermFrequency {
+func IndexFileTermFreq(modTime int64, content string) cache.FileTermFrequency {
 	lexer := lexer.NewLexer(content)
-	ftf := cache.FileTermFrequency{TF: map[string]uint{}, IndexTime: time.Now().UnixMilli()}
+	ftf := cache.FileTermFrequency{
+		TF:        map[string]uint{},
+		IndexTime: modTime,
+	}
 
 	for {
 		token, ok := lexer.NextToken()
