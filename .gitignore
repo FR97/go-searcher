@@ -16,3 +16,7 @@ go.work
 cache.json
 # ignore binaries
 bin
+
+# ignore test files folder
+/test_files_medium
+/test_files_large
