@@ -14,32 +14,6 @@ import (
 	"jaytaylor.com/html2text"
 )
 
-func ParseFiles(path string,
-	fileFilter func(string, int64) bool,
-	withContent func(string, int64, string),
-	withError func(error)) error {
-	err := filepath.Walk(path,
-		func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			} else if info.IsDir() {
-				return nil
-			} else if !fileFilter(path, info.ModTime().UnixMilli()) {
-				return nil
-			}
-
-			processFile(path,
-				func(p, c string) {
-					withContent(p, info.ModTime().UnixMilli(), c)
-				},
-				withError)
-
-			return nil
-		})
-
-	return err
-}
-
 func ParseFilesMT(
 	wg *sync.WaitGroup,
 	path string,
@@ -94,15 +68,6 @@ func processFileMT(
 		withError(err)
 	} else {
 		withContent(req.Path, req.ModTime, content)
-	}
-}
-
-func processFile(path string, withContent func(string, string), withError func(error)) {
-	content, err := parseFile(path)
-	if err != nil {
-		withError(err)
-	} else {
-		withContent(path, content)
 	}
 }
 
