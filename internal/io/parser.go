@@ -14,7 +14,7 @@ import (
 	"jaytaylor.com/html2text"
 )
 
-func ParseFilesMT(
+func ParseFiles(
 	wg *sync.WaitGroup,
 	path string,
 	threads int,
@@ -28,7 +28,7 @@ func ParseFilesMT(
 	fmt.Println("starting", threads, "workers")
 	for i := 0; i < threads; i++ {
 		go ParseWorker(i, ch, func(pr ParseReq) {
-			processFileMT(pr, withContent, withError)
+			processFile(pr, withContent, withError)
 		})
 	}
 
@@ -59,7 +59,7 @@ func ParseFilesMT(
 	return err
 }
 
-func processFileMT(
+func processFile(
 	req ParseReq,
 	withContent func(string, int64, string),
 	withError func(error)) {

@@ -30,7 +30,7 @@ func Index(cfg config.Config) {
 	wg := &sync.WaitGroup{}
 	mutex := &sync.Mutex{}
 	go func() {
-		io.ParseFilesMT(
+		io.ParseFiles(
 			wg,
 			cfg.IndexConfig.IndexingPath,
 			cfg.IndexConfig.Threads,
