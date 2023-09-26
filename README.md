@@ -7,3 +7,4 @@ go-searcher is project inspired by tsoding [seroost project](https://github.com/
 ### Metrics
 
 1 thread - `test_files_large` = 15540ms
+8 threads - `test_files_large` = 4080ms
