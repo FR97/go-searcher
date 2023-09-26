@@ -42,7 +42,6 @@ func ParseFiles(path string,
 
 func ParseFilesMT(
 	wg *sync.WaitGroup,
-	//ch chan io.ParseReq,
 	path string,
 	threads int,
 	fileFilter func(string, int64) bool,
@@ -87,7 +86,6 @@ func ParseFilesMT(
 }
 
 func processFileMT(
-	//	wg *sync.WaitGroup,
 	req ParseReq,
 	withContent func(string, int64, string),
 	withError func(error)) {
