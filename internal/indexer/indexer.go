@@ -23,16 +23,12 @@ func Index(cfg config.Config) {
 	}
 
 	ch := make(chan indexRes, cfg.IndexConfig.Threads*4)
-	//	parseCh := make(chan io.ParseReq)
 	doneParse := make(chan struct{})
-	//defer close(done)
 	defer close(ch)
-	//	defer close(parseCh)
 	defer close(doneParse)
 
 	wg := &sync.WaitGroup{}
 	mutex := &sync.Mutex{}
-	//wg.Add(1)
 	go func() {
 		io.ParseFilesMT(
 			wg,
