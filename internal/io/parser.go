@@ -25,7 +25,7 @@ func ParseFiles(
 
 	ch := make(chan ParseReq, threads*2)
 	defer close(ch)
-	fmt.Println("starting", threads, "workers")
+
 	for i := 0; i < threads; i++ {
 		go ParseWorker(i, ch, func(pr ParseReq) {
 			processFile(pr, withContent, withError)
