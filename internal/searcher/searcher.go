@@ -1,10 +1,11 @@
 package searcher
 
 import (
-	"github.com/fr97/go-searcher/internal/cache"
-	"github.com/fr97/go-searcher/internal/lexer"
 	"math"
 	"sort"
+
+	"github.com/fr97/go-searcher/internal/cache"
+	"github.com/fr97/go-searcher/internal/lexer"
 )
 
 type SearchQuery struct {
@@ -19,19 +20,7 @@ type SearchResult struct {
 }
 
 func Search(query SearchQuery, cache cache.Cache) []SearchResult {
-
-	lexer := lexer.NewLexer(query.Input)
-	terms := []string{}
-
-	for {
-		token, ok := lexer.NextToken()
-		if !ok {
-			break
-		}
-
-		terms = append(terms, string(token))
-	}
-
+	terms := parseTerms(query.Input)
 	results := []SearchResult{}
 
 	for file, ftf := range cache.FileToTermFreq {
@@ -48,11 +37,21 @@ func Search(query SearchQuery, cache cache.Cache) []SearchResult {
 		}
 	}
 
-	sort.Slice(results, func(i, j int) bool {
-		return results[i].Score > results[j].Score
-	})
+	return sortAndPaginate(results, query)
+}
 
-	return results[query.Offset : query.Offset+query.Limit]
+func parseTerms(input string) []string {
+	lexer := lexer.NewLexer(input)
+	terms := []string{}
+	for {
+		token, ok := lexer.NextToken()
+		if !ok {
+			break
+		}
+
+		terms = append(terms, string(token))
+	}
+	return terms
 }
 
 func caclulateTF(ftf cache.FileTermFrequency, term string) float64 {
@@ -75,4 +74,12 @@ func calculateIDF(cache cache.Cache, term string) float64 {
 	idf := math.Log10(docCount / termOccurrence)
 
 	return idf
+}
+
+func sortAndPaginate(results []SearchResult, query SearchQuery) []SearchResult {
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Score > results[j].Score
+	})
+
+	return results[query.Offset : query.Offset+query.Limit]
 }
