@@ -12,8 +12,9 @@ import (
 )
 
 type indexRes struct {
-	file string
-	tf   cache.FileTermFrequency
+	file    string
+	tf      cache.FileTermFrequency
+	indexed bool
 }
 
 func Index(cfg config.Config) {
@@ -22,22 +23,19 @@ func Index(cfg config.Config) {
 		fmt.Println("Index file not found, creating new index")
 	}
 
-	ch := make(chan indexRes, cfg.IndexConfig.Threads*4)
-	doneParse := make(chan struct{})
-	defer close(ch)
-	defer close(doneParse)
+	newCache := cache.NewCache()
 
+	ch := make(chan indexRes, cfg.IndexConfig.Threads*16)
+	defer close(ch)
 	wg := &sync.WaitGroup{}
-	mutex := &sync.Mutex{}
+	wg.Add(1)
 	go func() {
 		io.ParseFiles(
-			wg,
 			cfg.IndexConfig.IndexingPath,
 			cfg.IndexConfig.Threads,
 			func(path string, modTime int64) bool {
-				mutex.Lock()
 				cached, exists := cached.FileToTermFreq[path]
-				mutex.Unlock()
+				wg.Add(1)
 
 				if !exists {
 					fmt.Println("Indexing new file:", path)
@@ -50,37 +48,37 @@ func Index(cfg config.Config) {
 				}
 
 				fmt.Println("Skipping already indexed file:", path)
+				ch <- indexRes{path, cached, true}
 				return false
 			},
 			func(file string, modTime int64, content string) {
 				tf := IndexFileTermFreq(modTime, content)
-				ch <- indexRes{file, tf}
+				ch <- indexRes{file, tf, false}
 			},
 			func(err error) {
 				withError(err)
 				wg.Done()
 			})
-		fmt.Println("Parsing finished closing channel")
-		doneParse <- struct{}{}
+		wg.Done()
 	}()
 
-	go func() {
-		for res := range ch {
-			mutex.Lock()
-			cached.FileToTermFreq[res.file] = res.tf
+	go func() { collectIndexResults(ch, newCache, wg) }()
+
+	wg.Wait()
+
+	io.WriteCache(cfg.CacheFilePath, newCache)
+}
+
+func collectIndexResults(ch chan indexRes, cache cache.Cache, wg *sync.WaitGroup) {
+	for res := range ch {
+		cache.FileToTermFreq[res.file] = res.tf
+		if !res.indexed {
 			for k := range res.tf.TF {
-				cached.TermToFileFreq[k] = cached.TermToFileFreq[k] + 1
+				cache.TermToFileFreq[k] = cache.TermToFileFreq[k] + 1
 			}
-			mutex.Unlock()
-			fmt.Println("Indexed file:", res.file)
-			wg.Done()
 		}
-	}()
-
-	fmt.Println("Waiting for parse to finish...")
-	<-doneParse
-
-	io.WriteCache(cfg.CacheFilePath, cached)
+		wg.Done()
+	}
 }
 
 func withError(err error) {
@@ -88,7 +86,7 @@ func withError(err error) {
 }
 
 func IndexFileTermFreq(modTime int64, content string) cache.FileTermFrequency {
-	lexer := lexer.NewStemmingLexer(content)
+	lexer := lexer.NewLexer(content, true)
 	ftf := cache.FileTermFrequency{
 		TF:        map[string]uint{},
 		IndexTime: modTime,
@@ -100,7 +98,7 @@ func IndexFileTermFreq(modTime int64, content string) cache.FileTermFrequency {
 			break
 		}
 
-		term := strings.ToLower(string(token))
+		term := strings.ToLower(token)
 		count := ftf.TF[term]
 		ftf.TF[term] = count + 1
 		ftf.TotalTermCount++

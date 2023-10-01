@@ -8,28 +8,19 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 
 	"jaytaylor.com/html2text"
 )
 
 func ParseFiles(
-	wg *sync.WaitGroup,
 	path string,
 	threads int,
 	fileFilter func(string, int64) bool,
 	withContent func(string, int64, string),
 	withError func(error),
 ) error {
-
-	ch := make(chan ParseReq, threads*2)
+	ch := makeWorkerChannel(threads, withContent, withError)
 	defer close(ch)
-
-	for i := 0; i < threads; i++ {
-		go ParseWorker(i, ch, func(pr ParseReq) {
-			processFile(pr, withContent, withError)
-		})
-	}
 
 	err := filepath.Walk(path,
 		func(path string, info os.FileInfo, err error) error {
@@ -42,7 +33,6 @@ func ParseFiles(
 			}
 
 			req := ParseReq{path, info.ModTime().UnixMilli()}
-			wg.Add(1)
 			for loop := true; loop; {
 				select {
 				case ch <- req:
@@ -54,8 +44,21 @@ func ParseFiles(
 			return nil
 		})
 
-	wg.Wait()
 	return err
+}
+
+func makeWorkerChannel(
+	threads int,
+	withContent func(string, int64, string),
+	withError func(error)) chan ParseReq {
+	ch := make(chan ParseReq, threads*2)
+
+	for i := 0; i < threads; i++ {
+		go ParseWorker(i, ch, func(pr ParseReq) {
+			processFile(pr, withContent, withError)
+		})
+	}
+	return ch
 }
 
 func processFile(

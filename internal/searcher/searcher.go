@@ -1,7 +1,6 @@
 package searcher
 
 import (
-	"fmt"
 	"math"
 	"sort"
 
@@ -42,7 +41,7 @@ func Search(query SearchQuery, cache cache.Cache) []SearchResult {
 }
 
 func parseTerms(input string) []string {
-	lexer := lexer.NewStemmingLexer(input)
+	lexer := lexer.NewLexer(input, true)
 	terms := []string{}
 	for {
 		token, ok := lexer.NextToken()
@@ -50,7 +49,7 @@ func parseTerms(input string) []string {
 			break
 		}
 
-		terms = append(terms, string(token))
+		terms = append(terms, token)
 	}
 	return terms
 }
