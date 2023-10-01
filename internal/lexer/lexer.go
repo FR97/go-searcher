@@ -1,19 +1,26 @@
 package lexer
 
 import (
+	"fmt"
 	"unicode"
+
+	"github.com/surgebase/porter2"
 )
 
-type Lexer struct {
+type Lexer interface {
+	NextToken() ([]rune, bool)
+}
+
+type SimpleTermLexer struct {
 	content  []rune
 	position int
 }
 
-func NewLexer(content string) *Lexer {
-	return &Lexer{content: []rune(content), position: 0}
+func NewLexer(content string) Lexer {
+	return &SimpleTermLexer{content: []rune(content), position: 0}
 }
 
-func (l *Lexer) NextToken() ([]rune, bool) {
+func (l *SimpleTermLexer) NextToken() ([]rune, bool) {
 	l.incrementWhile(unicode.IsSpace)
 
 	if l.position >= len(l.content) {
@@ -34,10 +41,30 @@ func (l *Lexer) NextToken() ([]rune, bool) {
 	}
 }
 
-func (l *Lexer) incrementWhile(filter func(rune) bool) {
+func (l *SimpleTermLexer) incrementWhile(filter func(rune) bool) {
 	for l.position < len(l.content) && filter(l.content[l.position]) {
 		l.position += 1
 	}
+}
+
+type StemmingLexer struct {
+	simpleLexer SimpleTermLexer
+}
+
+func NewStemmingLexer(content string) Lexer {
+	return &StemmingLexer{simpleLexer: SimpleTermLexer{content: []rune(content), position: 0}}
+}
+
+func (l *StemmingLexer) NextToken() ([]rune, bool) {
+	token, ok := l.simpleLexer.NextToken()
+	if !ok {
+		return token, ok
+	}
+
+	fmt.Println("before stem:", string(token))
+	stemmed := porter2.Stem(string(token))
+	fmt.Println("after stem:", string(stemmed))
+	return []rune(stemmed), true
 }
 
 func isAlpaNumeric(r rune) bool {
