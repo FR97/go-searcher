@@ -1,14 +1,13 @@
 package lexer
 
 import (
-	"fmt"
 	"unicode"
 
 	"github.com/surgebase/porter2"
 )
 
 type Lexer interface {
-	NextToken() ([]rune, bool)
+	NextToken() (string, bool)
 }
 
 type SimpleTermLexer struct {
@@ -16,28 +15,31 @@ type SimpleTermLexer struct {
 	position int
 }
 
-func NewLexer(content string) Lexer {
+func NewLexer(content string, stemming bool) Lexer {
+	if stemming {
+		return newStemmingLexer(content)
+	}
 	return &SimpleTermLexer{content: []rune(content), position: 0}
 }
 
-func (l *SimpleTermLexer) NextToken() ([]rune, bool) {
+func (l *SimpleTermLexer) NextToken() (string, bool) {
 	l.incrementWhile(unicode.IsSpace)
 
 	if l.position >= len(l.content) {
-		return []rune{}, false
+		return "", false
 	}
 
 	if unicode.IsLetter(l.content[l.position]) { // word token
 		start := l.position
 		l.incrementWhile(isAlpaNumeric)
-		return l.content[start:l.position], true
+		return string(l.content[start:l.position]), true
 	} else if unicode.IsNumber(l.content[l.position]) { // number token
 		start := l.position
 		l.incrementWhile(unicode.IsNumber)
-		return l.content[start:l.position], true
+		return string(l.content[start:l.position]), true
 	} else { // other tokens are treated as single chars
 		l.position += 1
-		return l.content[l.position-1 : l.position], true
+		return string(l.content[l.position-1 : l.position]), true
 	}
 }
 
@@ -51,20 +53,19 @@ type StemmingLexer struct {
 	simpleLexer SimpleTermLexer
 }
 
-func NewStemmingLexer(content string) Lexer {
+func newStemmingLexer(content string) Lexer {
 	return &StemmingLexer{simpleLexer: SimpleTermLexer{content: []rune(content), position: 0}}
 }
 
-func (l *StemmingLexer) NextToken() ([]rune, bool) {
+func (l *StemmingLexer) NextToken() (string, bool) {
 	token, ok := l.simpleLexer.NextToken()
 	if !ok {
 		return token, ok
 	}
 
-	fmt.Println("before stem:", string(token))
 	stemmed := porter2.Stem(string(token))
-	fmt.Println("after stem:", string(stemmed))
-	return []rune(stemmed), true
+
+	return stemmed, true
 }
 
 func isAlpaNumeric(r rune) bool {

@@ -41,7 +41,7 @@ func Search(query SearchQuery, cache cache.Cache) []SearchResult {
 }
 
 func parseTerms(input string) []string {
-	lexer := lexer.NewLexer(input)
+	lexer := lexer.NewLexer(input, true)
 	terms := []string{}
 	for {
 		token, ok := lexer.NextToken()
@@ -49,7 +49,7 @@ func parseTerms(input string) []string {
 			break
 		}
 
-		terms = append(terms, string(token))
+		terms = append(terms, token)
 	}
 	return terms
 }
@@ -81,5 +81,16 @@ func sortAndPaginate(results []SearchResult, query SearchQuery) []SearchResult {
 		return results[i].Score > results[j].Score
 	})
 
-	return results[query.Offset : query.Offset+query.Limit]
+	start := query.Limit * query.Offset
+	end := query.Limit * (query.Offset + 1)
+
+	if start > len(results) {
+		return []SearchResult{}
+	}
+
+	if end > len(results) {
+		return results[start:]
+	}
+
+	return results[start:end]
 }
