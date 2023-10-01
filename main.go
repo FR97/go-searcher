@@ -3,8 +3,6 @@ package main
 import (
 	_ "embed"
 	"fmt"
-	"runtime"
-	"strings"
 	"time"
 
 	"github.com/fr97/go-searcher/internal/cache"
@@ -47,37 +45,8 @@ func main() {
 		indices := loadCacheFile(cfg)
 		server.Serve(cfg, indices, html)
 	default:
-		help()
+		config.ShowHelp()
 	}
-}
-
-func help() {
-
-	osExt := ""
-	if runtime.GOOS == "windows" {
-		osExt = ".exe"
-	}
-
-	builder := strings.Builder{}
-
-	builder.WriteString("Usage: go-searcher" + osExt + " <command> <required-arg-value> [--opt-arg opt-arg-value]\n")
-	builder.WriteString("Commands:\n")
-	builder.WriteString("  index <index-path> [--cache-file (default: ./cache.json)] [--threads (default: 1)]\n")
-	builder.WriteString("  search <search-input> [--cache-file (default: ./cache.json)]\n")
-	builder.WriteString("  serve [--cache-file (default: ./cache.json)] [--port (default: 8080)]\n\n")
-	builder.WriteString("Example for indexing all dirs/files under current dir and save in default cache file:\n")
-	builder.WriteString("  go-searcher" + osExt + " index ./\n")
-	builder.WriteString("\n")
-	builder.WriteString("Example for indexing everything under ./custom dir and save in custom-cache.json file:\n")
-	builder.WriteString("  go-searcher" + osExt + " index ./custom --cache-file ./custom-cache.json\n")
-	builder.WriteString("\n")
-	builder.WriteString("Example for searching 'hello world' in default cache file:\n")
-	builder.WriteString("  go-searcher" + osExt + " search 'hello world'\n")
-	builder.WriteString("\n")
-	builder.WriteString("Example for starting server with default cache.json file on custom port 9999:\n")
-	builder.WriteString("  go-searcher" + osExt + " serve --port 9999\n")
-
-	fmt.Println(builder.String())
 }
 
 func loadCacheFile(cfg config.Config) cache.Cache {
