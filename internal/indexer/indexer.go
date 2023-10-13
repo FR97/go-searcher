@@ -42,7 +42,7 @@ func Index(cfg config.Config) {
 					return true
 				}
 
-				if modTime > cached.IndexTime {
+				if modTime > cached.ModTIme {
 					fmt.Println("Reindexing modified file:", path)
 					return true
 				}
@@ -88,8 +88,8 @@ func withError(err error) {
 func IndexFileTermFreq(modTime int64, content string) cache.FileTermFrequency {
 	lexer := lexer.NewLexer(content, true)
 	ftf := cache.FileTermFrequency{
-		TF:        map[string]uint{},
-		IndexTime: modTime,
+		TF:      map[string]uint{},
+		ModTIme: modTime,
 	}
 
 	for {
