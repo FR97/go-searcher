@@ -41,7 +41,7 @@ func Search(query SearchQuery, cache cache.Cache) []SearchResult {
 }
 
 func parseTerms(input string) []string {
-	lexer := lexer.NewLexer(input, true)
+	lexer := lexer.NewStemmingLexer(input)
 	terms := []string{}
 	for {
 		token, ok := lexer.NextToken()
