@@ -2,12 +2,13 @@ package server
 
 import (
 	"fmt"
+	"html/template"
+	"net/http"
+
 	"github.com/fr97/go-searcher/internal/cache"
 	"github.com/fr97/go-searcher/internal/config"
 	"github.com/fr97/go-searcher/internal/io"
 	"github.com/fr97/go-searcher/internal/searcher"
-	"html/template"
-	"net/http"
 )
 
 func Serve(cfg config.Config, cache cache.Cache, html string) {
