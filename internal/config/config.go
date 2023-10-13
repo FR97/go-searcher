@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"runtime"
 	"strings"
 )
 
@@ -25,6 +24,7 @@ var Commands = map[string]Command{
 }
 
 type Config struct {
+	ProgramName   string
 	Command       Command
 	CacheFilePath string
 	IndexConfig   IndexConfig
@@ -48,6 +48,9 @@ type ServerConfig struct {
 }
 
 func LoadConfig() Config {
+
+	name := os.Args[0]
+
 	command := Help
 	if len(os.Args) > 1 {
 		c := os.Args[1]
@@ -61,6 +64,7 @@ func LoadConfig() Config {
 	flagOffset := 2
 
 	config := &Config{
+		ProgramName:  name,
 		Command:      command,
 		IndexConfig:  IndexConfig{},
 		SearchConfig: SearchQuery{},
@@ -97,36 +101,28 @@ func LoadConfig() Config {
 		flagSet.Parse(os.Args[flagOffset:])
 	}
 
-	fmt.Println("config:", config)
-
 	return *config
 }
 
-func ShowHelp() {
-
-	osExt := ""
-	if runtime.GOOS == "windows" {
-		osExt = ".exe"
-	}
-
+func ShowHelp(config Config) {
 	builder := strings.Builder{}
 
-	builder.WriteString("Usage: go-searcher" + osExt + " <command> <required-arg-value> [--opt-arg opt-arg-value]\n")
+	builder.WriteString("Usage: " + config.ProgramName + " <command> <required-arg-value> [--opt-arg opt-arg-value]\n")
 	builder.WriteString("Commands:\n")
 	builder.WriteString("  index <index-path> [--cache-file (default: ./cache.json)] [--threads (default: 1)]\n")
 	builder.WriteString("  search <search-input> [--cache-file (default: ./cache.json)]\n")
 	builder.WriteString("  serve [--cache-file (default: ./cache.json)] [--port (default: 8080)]\n\n")
 	builder.WriteString("Example for indexing all dirs/files under current dir and save in default cache file:\n")
-	builder.WriteString("  go-searcher" + osExt + " index ./\n")
+	builder.WriteString("  " + config.ProgramName + " index ./\n")
 	builder.WriteString("\n")
 	builder.WriteString("Example for indexing everything under ./custom dir and save in custom-cache.json file:\n")
-	builder.WriteString("  go-searcher" + osExt + " index ./custom --cache-file ./custom-cache.json\n")
+	builder.WriteString("  " + config.ProgramName + " index ./custom --cache-file ./custom-cache.json\n")
 	builder.WriteString("\n")
 	builder.WriteString("Example for searching 'hello world' in default cache file:\n")
-	builder.WriteString("  go-searcher" + osExt + " search 'hello world'\n")
+	builder.WriteString("  " + config.ProgramName + " search 'hello world'\n")
 	builder.WriteString("\n")
 	builder.WriteString("Example for starting server with default cache.json file on custom port 9999:\n")
-	builder.WriteString("  go-searcher" + osExt + " serve --port 9999\n")
+	builder.WriteString("  " + config.ProgramName + " serve --port 9999\n")
 
 	fmt.Println(builder.String())
 }

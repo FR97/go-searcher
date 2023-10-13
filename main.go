@@ -45,7 +45,7 @@ func main() {
 		indices := loadCacheFile(cfg)
 		server.Serve(cfg, indices, html)
 	default:
-		config.ShowHelp()
+		config.ShowHelp(cfg)
 	}
 }
 
