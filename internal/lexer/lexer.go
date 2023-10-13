@@ -15,10 +15,7 @@ type SimpleTermLexer struct {
 	position int
 }
 
-func NewLexer(content string, stemming bool) Lexer {
-	if stemming {
-		return newStemmingLexer(content)
-	}
+func NewLexer(content string) Lexer {
 	return &SimpleTermLexer{content: []rune(content), position: 0}
 }
 
@@ -53,7 +50,7 @@ type StemmingLexer struct {
 	simpleLexer SimpleTermLexer
 }
 
-func newStemmingLexer(content string) Lexer {
+func NewStemmingLexer(content string) Lexer {
 	return &StemmingLexer{simpleLexer: SimpleTermLexer{content: []rune(content), position: 0}}
 }
 

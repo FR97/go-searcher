@@ -86,7 +86,7 @@ func withError(err error) {
 }
 
 func IndexFileTermFreq(modTime int64, content string) cache.FileTermFrequency {
-	lexer := lexer.NewLexer(content, true)
+	lexer := lexer.NewStemmingLexer(content)
 	ftf := cache.FileTermFrequency{
 		TF:      map[string]uint{},
 		ModTime: modTime,
