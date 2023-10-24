@@ -23,7 +23,7 @@ func ReadCache(path string) (cache.Cache, error) {
 func WriteCache(path string, cache cache.Cache) error {
 	data, err := json.Marshal(cache)
 	if err != nil {
-		panic("failed to marshal indexed data to json")
+		panic("failed to write cache file")
 	}
 
 	return os.WriteFile(path, data, 0644)
