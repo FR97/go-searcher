@@ -17,7 +17,7 @@ func Serve(cfg config.Config, cache cache.Cache, html string) {
 		handler(w, r, cache, html)
 	})
 
-	fmt.Println("Starting server on port:", cfg.ServerConfig.Port)
+	fmt.Println("Starting", cfg.ProgramName, "server on port:", cfg.ServerConfig.Port)
 	err := http.ListenAndServe(fmt.Sprint(":", cfg.ServerConfig.Port), nil)
 	if err != nil {
 		panic(err)
