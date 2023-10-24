@@ -36,7 +36,7 @@ func main() {
 		timed(
 			func() {
 				sr := searcher.Search(query, indices)
-				fmt.Println("results:", sr)
+				fmt.Println("search results:", sr)
 			},
 			func(d time.Duration) {
 				fmt.Println("search took:", d.Milliseconds(), "ms")
