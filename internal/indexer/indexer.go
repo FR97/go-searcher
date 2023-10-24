@@ -20,7 +20,7 @@ type indexRes struct {
 func Index(cfg config.Config) {
 	cached, err := io.ReadCache(cfg.CacheFilePath)
 	if err != nil {
-		fmt.Println("Index file not found, creating new index")
+		fmt.Println("Index cache file not found, creating new index")
 	}
 
 	newCache := cache.NewCache()
