@@ -10,16 +10,16 @@ type Lexer interface {
 	NextToken() (string, bool)
 }
 
-type SimpleTermLexer struct {
+type simpleTermLexer struct {
 	content  []rune
 	position int
 }
 
 func NewLexer(content string) Lexer {
-	return &SimpleTermLexer{content: []rune(content), position: 0}
+	return &simpleTermLexer{content: []rune(content), position: 0}
 }
 
-func (l *SimpleTermLexer) NextToken() (string, bool) {
+func (l *simpleTermLexer) NextToken() (string, bool) {
 	l.incrementWhile(unicode.IsSpace)
 
 	if l.position >= len(l.content) {
@@ -40,21 +40,21 @@ func (l *SimpleTermLexer) NextToken() (string, bool) {
 	}
 }
 
-func (l *SimpleTermLexer) incrementWhile(filter func(rune) bool) {
+func (l *simpleTermLexer) incrementWhile(filter func(rune) bool) {
 	for l.position < len(l.content) && filter(l.content[l.position]) {
 		l.position += 1
 	}
 }
 
-type StemmingLexer struct {
-	simpleLexer SimpleTermLexer
+type stemmingLexer struct {
+	simpleLexer simpleTermLexer
 }
 
 func NewStemmingLexer(content string) Lexer {
-	return &StemmingLexer{simpleLexer: SimpleTermLexer{content: []rune(content), position: 0}}
+	return &stemmingLexer{simpleLexer: simpleTermLexer{content: []rune(content), position: 0}}
 }
 
-func (l *StemmingLexer) NextToken() (string, bool) {
+func (l *stemmingLexer) NextToken() (string, bool) {
 	token, ok := l.simpleLexer.NextToken()
 	if !ok {
 		return token, ok
