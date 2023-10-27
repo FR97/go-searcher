@@ -88,7 +88,7 @@ func withError(err error) {
 func IndexFileTermFreq(modTime int64, content string) cache.FileTermFrequency {
 	lexer := lexer.NewStemmingLexer(content)
 	ftf := cache.FileTermFrequency{
-		TF:      map[string]uint{},
+		TF:      map[string]cache.TermOccurrence{},
 		ModTime: modTime,
 	}
 
@@ -99,8 +99,11 @@ func IndexFileTermFreq(modTime int64, content string) cache.FileTermFrequency {
 		}
 
 		term := strings.ToLower(token)
-		count := ftf.TF[term]
-		ftf.TF[term] = count + 1
+		occurrence := ftf.TF[term]
+		if occurrence.Count == 0 {
+			occurrence.FirstIndex = uint(lexer.CurrentPosition() - len(token))
+		}
+		occurrence.Count = occurrence.Count + 1
 		ftf.TotalTermCount++
 	}
 

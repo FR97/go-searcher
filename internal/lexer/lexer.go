@@ -7,6 +7,8 @@ import (
 )
 
 type Lexer interface {
+	CurrentPosition() int
+
 	NextToken() (string, bool)
 }
 
@@ -40,6 +42,10 @@ func (l *simpleTermLexer) NextToken() (string, bool) {
 	}
 }
 
+func (l *simpleTermLexer) CurrentPosition() int {
+	return l.position
+}
+
 func (l *simpleTermLexer) incrementWhile(filter func(rune) bool) {
 	for l.position < len(l.content) && filter(l.content[l.position]) {
 		l.position += 1
@@ -63,6 +69,10 @@ func (l *stemmingLexer) NextToken() (string, bool) {
 	stemmed := porter2.Stem(string(token))
 
 	return stemmed, true
+}
+
+func (l *stemmingLexer) CurrentPosition() int {
+	return l.simpleLexer.CurrentPosition()
 }
 
 func isAlpaNumeric(r rune) bool {

@@ -59,7 +59,7 @@ func caclulateTF(ftf cache.FileTermFrequency, term string) float64 {
 		return 0
 	}
 
-	tf := float64(ftf.TF[term])
+	tf := float64(ftf.TF[term].Count)
 	return tf / float64(ftf.TotalTermCount)
 }
 
