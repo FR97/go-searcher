@@ -24,7 +24,7 @@ func main() {
 		timed(
 			func() { indexer.Index(cfg) },
 			func(d time.Duration) {
-				fmt.Println("indexing took:", d.Milliseconds(), "ms")
+				fmt.Println("indexing done in ", d.Milliseconds(), "ms")
 			})
 	case config.Search:
 		indices := loadCacheFile(cfg)
@@ -39,7 +39,7 @@ func main() {
 				fmt.Println("search results:", sr)
 			},
 			func(d time.Duration) {
-				fmt.Println("search took:", d.Milliseconds(), "ms")
+				fmt.Println("search done in ", d.Milliseconds(), "ms")
 			})
 	case config.Serve:
 		indices := loadCacheFile(cfg)
