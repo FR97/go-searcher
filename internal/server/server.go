@@ -33,6 +33,7 @@ type searchResult struct {
 	FileName string
 	FilePath string
 	Score    float64
+	Preview  string
 }
 
 func handler(w http.ResponseWriter, r *http.Request, cache cache.Cache, html string) {
@@ -53,6 +54,7 @@ func handler(w http.ResponseWriter, r *http.Request, cache cache.Cache, html str
 					FileName: io.GetFileNameForFilePath(result.FilePath),
 					FilePath: result.FilePath,
 					Score:    result.Score,
+					Preview:  result.Preview,
 				})
 		}
 		htmlOK(w, res, html)
