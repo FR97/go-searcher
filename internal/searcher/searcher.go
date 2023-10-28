@@ -3,8 +3,10 @@ package searcher
 import (
 	"math"
 	"sort"
+	"strings"
 
 	"github.com/fr97/go-searcher/internal/cache"
+	"github.com/fr97/go-searcher/internal/io"
 	"github.com/fr97/go-searcher/internal/lexer"
 )
 
@@ -17,27 +19,42 @@ type SearchQuery struct {
 type SearchResult struct {
 	FilePath string
 	Score    float64
+	Preview  string
 }
 
 func Search(query SearchQuery, cache cache.Cache) []SearchResult {
 	terms := parseTerms(query.Input)
 	results := []SearchResult{}
+	fileTermIndexes := map[string][]int{}
 
 	for file, ftf := range cache.FileToTermFreq {
 		score := 0.0
 		for _, term := range terms {
-			tf := caclulateTF(ftf, term)
-			idf := calculateIDF(cache, term)
-			score += tf * idf
+			_tf, ok := ftf.TF[term]
+			if !ok {
+				score = 0
+			} else {
+				tf := float64(_tf.Count) / float64(ftf.TotalTermCount)
+				fileTermIndexes[file] = append(fileTermIndexes[file], int(_tf.FirstIndex))
+				idf := calculateIDF(cache, term)
+				score += tf * idf
+			}
 		}
 
 		if score > 0 {
 			res := SearchResult{FilePath: file, Score: score}
 			results = append(results, res)
 		}
+
 	}
 
-	return sortAndPaginate(results, query)
+	resultPage := sortAndPaginate(results, query)
+
+	for i, res := range resultPage {
+		resultPage[i].Preview = previewContent(res, terms, fileTermIndexes[res.FilePath], 20)
+	}
+
+	return resultPage
 }
 
 func parseTerms(input string) []string {
@@ -52,15 +69,6 @@ func parseTerms(input string) []string {
 		terms = append(terms, token)
 	}
 	return terms
-}
-
-func caclulateTF(ftf cache.FileTermFrequency, term string) float64 {
-	if len(ftf.TF) <= 0 {
-		return 0
-	}
-
-	tf := float64(ftf.TF[term].Count)
-	return tf / float64(ftf.TotalTermCount)
 }
 
 func calculateIDF(cache cache.Cache, term string) float64 {
@@ -93,4 +101,36 @@ func sortAndPaginate(results []SearchResult, query SearchQuery) []SearchResult {
 	}
 
 	return results[start:end]
+}
+
+func previewContent(res SearchResult, terms []string, termIndexes []int, previewOffset int) string {
+	fileContent, err := io.ParseFile(res.FilePath)
+	if err != nil {
+		println("Failed to read file for preview:", res.FilePath)
+	}
+
+	preview := ""
+	for i := range terms {
+		index := termIndexes[i]
+		start := max(0, index-previewOffset)
+		end := min(len(fileContent), index+previewOffset)
+		preview += strings.ReplaceAll(fileContent[start:end], "\n", " ")
+		preview += "...\n"
+	}
+
+	return preview
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }

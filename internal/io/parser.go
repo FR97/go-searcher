@@ -65,7 +65,7 @@ func processFile(
 	req ParseReq,
 	withContent func(string, int64, string),
 	withError func(error)) {
-	content, err := parseFile(req.Path)
+	content, err := ParseFile(req.Path)
 	if err != nil {
 		withError(err)
 	} else {
@@ -73,7 +73,7 @@ func processFile(
 	}
 }
 
-func parseFile(filePath string) (string, error) {
+func ParseFile(filePath string) (string, error) {
 
 	if len(filePath) <= 0 {
 		return "", errors.New("empty file path")
