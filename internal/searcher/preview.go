@@ -6,6 +6,7 @@ import (
 	"github.com/fr97/go-searcher/internal/io"
 )
 
+// TODO: make better preview to merge different term surround text into one
 func previewContent(res SearchResult, terms []string, termIndexes []int, previewOffset int) string {
 	fileContent, err := io.ParseFile(res.FilePath)
 	if err != nil {
