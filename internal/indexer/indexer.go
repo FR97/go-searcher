@@ -99,11 +99,17 @@ func IndexFileTermFreq(modTime int64, content string) cache.FileTermFrequency {
 		}
 
 		term := strings.ToLower(token)
-		occurrence := ftf.TF[term]
-		if occurrence.Count == 0 {
-			occurrence.FirstIndex = uint(lexer.CurrentPosition() - len(token))
+		occurrence, ok := ftf.TF[term]
+		println("term:", term, "occurrence:", occurrence.Count)
+		if !ok {
+			occurrence = cache.TermOccurrence{
+				Count:      1,
+				FirstIndex: uint(lexer.CurrentPosition() - len(token)),
+			}
+		} else {
+			occurrence.Count = occurrence.Count + 1
 		}
-		occurrence.Count = occurrence.Count + 1
+		ftf.TF[term] = occurrence
 		ftf.TotalTermCount++
 	}
 
