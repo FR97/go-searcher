@@ -100,7 +100,6 @@ func IndexFileTermFreq(modTime int64, content string) cache.FileTermFrequency {
 
 		term := strings.ToLower(token)
 		occurrence, ok := ftf.TF[term]
-		println("term:", term, "occurrence:", occurrence.Count)
 		if !ok {
 			occurrence = cache.TermOccurrence{
 				Count:      1,
